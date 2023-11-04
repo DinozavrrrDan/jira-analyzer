@@ -31,10 +31,11 @@ func main() {
 
 func getProjectInfo() {
 	httpClient := &http.Client{}
-	projectName := "AAR"
+	projectName := "AAR" //Просто для примера имя
 	resp, err := httpClient.Get("http://issues.apache.org/jira/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
+
 	if err != nil {
-		fmt.Print(err)
+		fmt.Print(err) //заменю на логирование
 		return
 	}
 
@@ -44,8 +45,8 @@ func getProjectInfo() {
 
 	var issueResp models.IssuesList
 	err = json.Unmarshal(body, &issueResp)
-	//fmt.Print(issueResp)
 
+	//Это по сути трансофрмер
 	var trIss []TransformedIssue
 	trIss = append(trIss, TransformedIssue{
 		Project:     issueResp.Issues[0].Fields.Project.Name,
@@ -58,6 +59,8 @@ func getProjectInfo() {
 		Priority:    issueResp.Issues[0].Fields.Priority.Name,
 		Status:      issueResp.Issues[0].Fields.Status.Name,
 	})
+
+	//Вывод для тестирования
 	fmt.Println("1: Project:     " + trIss[0].Project)
 	fmt.Println("2: Author:      " + trIss[0].Author)
 	fmt.Println("3: Assignee:    " + trIss[0].Assignee)
@@ -67,15 +70,6 @@ func getProjectInfo() {
 	fmt.Println("7: Type:        " + trIss[0].Type)
 	fmt.Println("8: Priority:    " + trIss[0].Priority)
 	fmt.Println("9: Status:      " + trIss[0].Status)
-	//	fmt.Print(string(body))
-
-	// if err != nil {
-	// 	fmt.Print(err)
-	// 	return
-	// }
-
-	// var issueFields IssueFields
-	// err = json.Unmarshal(body, &issueFields)
 
 }
 
@@ -102,6 +96,7 @@ func getProjects() {
 
 	counterOfProjects := 0
 
+	//Получение информации о определенном колчичестве проектов
 	for _, element := range jiraProjects {
 		counterOfProjects++
 		projects = append(projects, models.Project{
