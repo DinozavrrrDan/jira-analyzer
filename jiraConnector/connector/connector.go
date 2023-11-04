@@ -2,27 +2,12 @@ package connector
 
 import (
 	"Jira-analyzer/jiraConnector/models"
+	"Jira-analyzer/jiraConnector/transformer"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 )
-
-type TransformedIssue struct {
-	Project     string
-	Author      string
-	Assignee    string
-	Key         string
-	Summary     string
-	Description string
-	Type        string
-	Priority    string
-	Status      string
-	//CreatedTime time.Time
-	//ClosedTime  time.Time
-	//UpdatedTime time.Time
-	//Timespent   int64
-}
 
 func main() {
 	getProjects()
@@ -32,44 +17,21 @@ func main() {
 func getProjectInfo() {
 	httpClient := &http.Client{}
 	projectName := "AAR" //Просто для примера имя
-	resp, err := httpClient.Get("http://issues.apache.org/jira/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
+	responce, err := httpClient.Get("http://issues.apache.org/jira/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
 
 	if err != nil {
 		fmt.Print(err) //заменю на логирование
 		return
 	}
 
-	defer resp.Body.Close()
+	defer responce.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(responce.Body)
 
-	var issueResp models.IssuesList
-	err = json.Unmarshal(body, &issueResp)
+	var issueResponce models.IssuesList
+	err = json.Unmarshal(body, &issueResponce)
 
-	//Это по сути трансофрмер
-	var trIss []TransformedIssue
-	trIss = append(trIss, TransformedIssue{
-		Project:     issueResp.Issues[0].Fields.Project.Name,
-		Author:      issueResp.Issues[0].Fields.Creator.Name,
-		Assignee:    issueResp.Issues[0].Fields.AssigneeName.Name,
-		Key:         issueResp.Issues[0].Key,
-		Summary:     issueResp.Issues[0].Fields.Summary,
-		Description: issueResp.Issues[0].Fields.Description,
-		Type:        issueResp.Issues[0].Fields.Type.Name,
-		Priority:    issueResp.Issues[0].Fields.Priority.Name,
-		Status:      issueResp.Issues[0].Fields.Status.Name,
-	})
-
-	//Вывод для тестирования
-	fmt.Println("1: Project:     " + trIss[0].Project)
-	fmt.Println("2: Author:      " + trIss[0].Author)
-	fmt.Println("3: Assignee:    " + trIss[0].Assignee)
-	fmt.Println("4: Key:         " + trIss[0].Key)
-	fmt.Println("5: Summary:     " + trIss[0].Summary)
-	fmt.Println("6: Description: " + trIss[0].Description)
-	fmt.Println("7: Type:        " + trIss[0].Type)
-	fmt.Println("8: Priority:    " + trIss[0].Priority)
-	fmt.Println("9: Status:      " + trIss[0].Status)
+	transformer.TrasformData(issueResponce)
 
 }
 
