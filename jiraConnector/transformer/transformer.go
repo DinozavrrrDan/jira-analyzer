@@ -6,8 +6,9 @@ import (
 )
 
 func TrasformData(issues models.IssuesList) {
-	var trIss []models.TransformedIssue
-	trIss = append(trIss, models.TransformedIssue{
+
+	var transormedIssue []models.TransformedIssue
+	transormedIssue = append(transormedIssue, models.TransformedIssue{
 		Project:     issues.Issues[0].Fields.Project.Name,
 		Author:      issues.Issues[0].Fields.Creator.Name,
 		Assignee:    issues.Issues[0].Fields.AssigneeName.Name,
@@ -19,13 +20,13 @@ func TrasformData(issues models.IssuesList) {
 		Status:      issues.Issues[0].Fields.Status.Name,
 	})
 
-	fmt.Println("1: Project:     " + trIss[0].Project)
-	fmt.Println("2: Author:      " + trIss[0].Author)
-	fmt.Println("3: Assignee:    " + trIss[0].Assignee)
-	fmt.Println("4: Key:         " + trIss[0].Key)
-	fmt.Println("5: Summary:     " + trIss[0].Summary)
-	fmt.Println("6: Description: " + trIss[0].Description)
-	fmt.Println("7: Type:        " + trIss[0].Type)
-	fmt.Println("8: Priority:    " + trIss[0].Priority)
-	fmt.Println("9: Status:      " + trIss[0].Status)
+	fmt.Println("1: Project:     " + transormedIssue[0].Project)
+	fmt.Println("2: Author:      " + transormedIssue[0].Author)
+	fmt.Println("3: Assignee:    " + transormedIssue[0].Assignee)
+	fmt.Println("4: Key:         " + transormedIssue[0].Key)
+	fmt.Println("5: Summary:     " + transormedIssue[0].Summary)
+	fmt.Println("6: Description: " + transormedIssue[0].Description)
+	fmt.Println("7: Type:        " + transormedIssue[0].Type)
+	fmt.Println("8: Priority:    " + transormedIssue[0].Priority)
+	fmt.Println("9: Status:      " + transormedIssue[0].Status)
 }

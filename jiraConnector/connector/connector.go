@@ -10,50 +10,60 @@ import (
 )
 
 func main() {
-	getProjects()
-	getProjectInfo()
+	GetProjects()
+	GetProjectInfo("AAR")
 }
 
-func getProjectInfo() {
+func GetProjectInfo(projectName string) {
 	httpClient := &http.Client{}
-	projectName := "AAR" //Просто для примера имя
-	responce, err := httpClient.Get("http://issues.apache.org/jira/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
 
+	//temp
+	projectName = "AAR" //Просто для примера имя
+
+	//Вынести в конфиг
+	jiraRepositoryUrl := "http://issues.apache.org/jira"
+
+	response, err := httpClient.Get(jiraRepositoryUrl + "/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
+	if err != nil || response.StatusCode != http.StatusOK {
+		fmt.Print(err) //заменю на логирование
+		return
+	}
+
+	body, err := io.ReadAll(response.Body)
+	var issueResponce models.IssuesList
+	err = json.Unmarshal(body, &issueResponce)
 	if err != nil {
 		fmt.Print(err) //заменю на логирование
 		return
 	}
 
-	defer responce.Body.Close()
-
-	body, err := io.ReadAll(responce.Body)
-
-	var issueResponce models.IssuesList
-	err = json.Unmarshal(body, &issueResponce)
-
 	transformer.TrasformData(issueResponce)
 
 }
 
-func getProjects() {
+func GetProjects() {
 	httpClient := &http.Client{}
-	resp, err := httpClient.Get("http://issues.apache.org/jira/rest/api/2/project")
 
+	//Вынести в конфиг
+	jiraRepositoryUrl := "http://issues.apache.org/jira"
+
+	resp, err := httpClient.Get(jiraRepositoryUrl + "/rest/api/2/project")
 	if err != nil {
 		fmt.Print(err)
 		return
 	}
 
-	defer resp.Body.Close()
-
 	body, err := io.ReadAll(resp.Body)
+
 	if err != nil {
 		fmt.Print(err)
 		return
 	}
 	var jiraProjects []models.JiraProject
 	err = json.Unmarshal(body, &jiraProjects) //получаем информацию через сериализацию
-
+	if err != nil {
+		return
+	}
 	var projects []models.Project
 
 	counterOfProjects := 0
