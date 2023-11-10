@@ -3,9 +3,14 @@ package transformer
 import (
 	"Jira-analyzer/jiraConnector/models"
 	"fmt"
+	"time"
 )
 
 func TrasformData(issues models.IssuesList) {
+
+	createdTime, _ := time.Parse("2006-01-02T15:04:05.999-0700", issues.Issues[0].Fields.CreatedTime)
+	closedTime, _ := time.Parse("2006-01-02T15:04:05.999-0700", issues.Issues[0].Fields.ClosedTime)
+	updatedTime, _ := time.Parse("2006-01-02T15:04:05.999-0700", issues.Issues[0].Fields.UpdatedTime)
 
 	var transormedIssue []models.TransformedIssue
 	transormedIssue = append(transormedIssue, models.TransformedIssue{
@@ -18,6 +23,9 @@ func TrasformData(issues models.IssuesList) {
 		Type:        issues.Issues[0].Fields.Type.Name,
 		Priority:    issues.Issues[0].Fields.Priority.Name,
 		Status:      issues.Issues[0].Fields.Status.Name,
+		CreatedTime: createdTime,
+		ClosedTime:  closedTime,
+		UpdatedTime: updatedTime,
 	})
 
 	fmt.Println("1: Project:     " + transormedIssue[0].Project)
@@ -29,4 +37,7 @@ func TrasformData(issues models.IssuesList) {
 	fmt.Println("7: Type:        " + transormedIssue[0].Type)
 	fmt.Println("8: Priority:    " + transormedIssue[0].Priority)
 	fmt.Println("9: Status:      " + transormedIssue[0].Status)
+	fmt.Println("10: Status:      " + transormedIssue[0].CreatedTime.String())
+	fmt.Println("11: Status:      " + transormedIssue[0].ClosedTime.String())
+	fmt.Println("12: Status:      " + transormedIssue[0].UpdatedTime.String())
 }
