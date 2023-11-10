@@ -2,6 +2,7 @@ package logger
 
 import (
 	"io"
+	"os"
 
 	"github.com/sirupsen/logrus"
 )
@@ -12,17 +13,25 @@ type JiraLogger struct {
 	errFile *io.Writer
 }
 
+type LogLevel int
+
+const (
+	DEBUG   LogLevel = 0
+	INFO    LogLevel = 1
+	WARNING LogLevel = 2
+	ERROR   LogLevel = 3
+)
+
 func CreateNewLogger() *JiraLogger {
 	logger := logrus.New()
 
 	logger.SetLevel(logrus.TraceLevel) //Trace level - самый объемный по информации
 
-	//Тут будут файлы, посоветуюсь с вами же добавлю
-	//logs, _ := os.OpenFile()
-	//errors, _ := os.OpenFile()
+	logs, _ := os.OpenFile("../logs/logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	errors, _ := os.OpenFile("../logs/errorLogs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 
-	//logFile := io.Writer(logs)
-	//errFile := io.Writer(err) может добавить доп вывод в os.Stdout??
+	logFile := io.MultiWriter(logs)
+	errFile := io.MultiWriter(os.Stderr, errors)
 
 	return &JiraLogger{
 		logger:  logger,
@@ -31,5 +40,19 @@ func CreateNewLogger() *JiraLogger {
 	}
 }
 
-// напишу после решения вопросов свыше
-// func Log(logLvevel LogLevel, logMessage string)
+func (JLogger *JiraLogger) Log(logLevel LogLevel, logMessage string) {
+	JLogger.logger.Out = *JLogger.logFile
+	if logLevel == DEBUG {
+		JLogger.logger.Debug(logMessage)
+	} else if logLevel == INFO {
+		JLogger.logger.Info(logMessage)
+	} else if logLevel == WARNING {
+		JLogger.logger.Warning(logMessage)
+		JLogger.logger.Out = *JLogger.errFile
+		JLogger.logger.Warning(logMessage)
+	} else if logLevel == ERROR {
+		JLogger.logger.Error(logLevel)
+		JLogger.logger.Out = *JLogger.errFile
+		JLogger.logger.Error(logLevel)
+	}
+}
