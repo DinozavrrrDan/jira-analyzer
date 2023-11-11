@@ -49,10 +49,7 @@ func (connector *Connector) GetProjectInfo(projectName string) {
 func (connector *Connector) GetProjects() {
 	httpClient := &http.Client{}
 
-	//Вынести в конфиг
-	jiraRepositoryUrl := "http://issues.apache.org/jira"
-
-	resp, err := httpClient.Get(jiraRepositoryUrl + "/rest/api/2/project")
+	resp, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/project")
 	if err != nil {
 		connector.logger.Log(logger.ERROR, "Error with get response from about projects ")
 		return
