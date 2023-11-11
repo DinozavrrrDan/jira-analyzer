@@ -3,6 +3,7 @@ package main
 import "Jira-analyzer/jiraConnector/connector"
 
 func main() {
-	connector.GetProjects()
-	connector.GetProjectInfo("AAR")
+	jiraConnector := connector.NewConnector()
+	jiraConnector.GetProjects()
+	jiraConnector.GetProjectInfo("AAR")
 }

@@ -1,6 +1,7 @@
 package connector
 
 import (
+	"Jira-analyzer/jiraConnector/logger"
 	"Jira-analyzer/jiraConnector/models"
 	"Jira-analyzer/jiraConnector/transformer"
 	"encoding/json"
@@ -9,18 +10,27 @@ import (
 	"net/http"
 )
 
-func GetProjectInfo(projectName string) {
+type Connector struct {
+	logger            *logger.JiraLogger
+	jiraRepositoryUrl string
+}
+
+func NewConnector() *Connector {
+	return &Connector{
+		logger:            logger.CreateNewLogger(),
+		jiraRepositoryUrl: "http://issues.apache.org/jira", //потом будет из конфига
+	}
+}
+
+func (connector *Connector) GetProjectInfo(projectName string) {
 	httpClient := &http.Client{}
 
 	//temp
 	projectName = "AAR" //Просто для примера имя
 
-	//Вынести в конфиг
-	jiraRepositoryUrl := "http://issues.apache.org/jira"
-
-	response, err := httpClient.Get(jiraRepositoryUrl + "/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
+	response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
 	if err != nil || response.StatusCode != http.StatusOK {
-		fmt.Print(err) //заменю на логирование
+		connector.logger.Log(logger.ERROR, "Error with get response from: ")
 		return
 	}
 
@@ -28,7 +38,7 @@ func GetProjectInfo(projectName string) {
 	var issueResponce models.IssuesList
 	err = json.Unmarshal(body, &issueResponce)
 	if err != nil {
-		fmt.Print(err) //заменю на логирование
+		connector.logger.Log(logger.ERROR, " ")
 		return
 	}
 
@@ -36,7 +46,7 @@ func GetProjectInfo(projectName string) {
 
 }
 
-func GetProjects() {
+func (connector *Connector) GetProjects() {
 	httpClient := &http.Client{}
 
 	//Вынести в конфиг
@@ -44,19 +54,20 @@ func GetProjects() {
 
 	resp, err := httpClient.Get(jiraRepositoryUrl + "/rest/api/2/project")
 	if err != nil {
-		fmt.Print(err)
+		connector.logger.Log(logger.ERROR, "Error with get response from about projects ")
 		return
 	}
 
 	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Print(err)
+		connector.logger.Log(logger.ERROR, " ")
 		return
 	}
 	var jiraProjects []models.JiraProject
 	err = json.Unmarshal(body, &jiraProjects) //получаем информацию через сериализацию
 	if err != nil {
+		connector.logger.Log(logger.ERROR, " ")
 		return
 	}
 	var projects []models.Project
