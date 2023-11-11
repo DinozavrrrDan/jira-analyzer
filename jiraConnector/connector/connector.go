@@ -9,11 +9,6 @@ import (
 	"net/http"
 )
 
-func main() {
-	GetProjects()
-	GetProjectInfo("AAR")
-}
-
 func GetProjectInfo(projectName string) {
 	httpClient := &http.Client{}
 
