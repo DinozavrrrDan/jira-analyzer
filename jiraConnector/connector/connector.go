@@ -1,6 +1,7 @@
 package connector
 
 import (
+	"Jira-analyzer/jiraConnector/configReader"
 	"Jira-analyzer/jiraConnector/logger"
 	"Jira-analyzer/jiraConnector/models"
 	"Jira-analyzer/jiraConnector/transformer"
@@ -12,13 +13,16 @@ import (
 
 type Connector struct {
 	logger            *logger.JiraLogger
+	configReader      *configReader.ConfigRaeder
 	jiraRepositoryUrl string
 }
 
 func NewConnector() *Connector {
+	newReader := configReader.CreateNewConfigReader()
 	return &Connector{
 		logger:            logger.CreateNewLogger(),
-		jiraRepositoryUrl: "http://issues.apache.org/jira", //потом будет из конфига
+		configReader:      newReader,
+		jiraRepositoryUrl: newReader.GetJiraUrl(),
 	}
 }
 
@@ -26,7 +30,7 @@ func (connector *Connector) GetProjectInfo(projectName string) {
 	httpClient := &http.Client{}
 
 	//temp
-	projectName = "AAR" //Просто для примера имя
+	projectName = "ACE" //Просто для примера имя
 
 	response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
 	if err != nil || response.StatusCode != http.StatusOK {
