@@ -10,6 +10,12 @@ type Issue struct {
 	Fields IssueFields `json:"fields"`
 }
 
+/*
+Возвращаемые проекты должны содержать следующие поля:
+ключ проекта
+имя проекта
+url проекта
+*/
 type Project struct {
 	Name string `json:"name"`
 	Link string `json:"link"`

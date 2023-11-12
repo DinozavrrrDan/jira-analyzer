@@ -17,7 +17,7 @@ type Connector struct {
 	jiraRepositoryUrl string
 }
 
-func NewConnector() *Connector {
+func CreateNewJiraConnector() *Connector {
 	newReader := configReader.CreateNewConfigReader()
 	return &Connector{
 		logger:            logger.CreateNewLogger(),
@@ -26,7 +26,12 @@ func NewConnector() *Connector {
 	}
 }
 
-func (connector *Connector) GetProjectInfo(projectName string) {
+/*
+В случае удачного выполнения запроса должен быть возвращен JSON,
+который содержит массив проектов и общее количество страниц при
+данном параметре limit
+*/
+func (connector *Connector) GetProjectIssues(projectName string) {
 	httpClient := &http.Client{}
 
 	//temp
@@ -50,6 +55,22 @@ func (connector *Connector) GetProjectInfo(projectName string) {
 
 }
 
+/*
+Возвращаемые проекты должны содержать следующие поля:
+ключ проекта
+имя проекта
+url проекта
+
+Параметр limit - сколько всего проектов необходимо вернуть
+Параметр page - порядковый номер страницы, который необходимо
+вернуть
+Параметр search - фильтр, который накладывается на название и ключ
+проекта. То есть запрос должен возвращать только те проекты,
+названия или ключ которых содержит значение параметра search
+В случае удачного выполнения запроса должен быть возвращен JSON,
+который содержит массив проектов и общее количество страниц при
+данном параметре limit
+*/
 func (connector *Connector) GetProjects() {
 	httpClient := &http.Client{}
 

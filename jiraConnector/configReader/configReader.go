@@ -1,10 +1,27 @@
-package configreader
+package configReader
 
 import (
 	"Jira-analyzer/jiraConnector/logger"
 
 	"github.com/spf13/viper"
 )
+
+/*
+Конфигурационный файл должен содержать следующую информацию:
+● Настройки базы данных (Жду инфе от Бори)
+	o имя пользователя PostgreSQL
+	o пароль пользователя PostgreSQL
+	o хост PostgreSQL
+	o порт PostgreSQL
+	o название базы данных
+● Настройки модуля
+	o Порт для локального http сервера
+	o URL сайта JIRA
+	o Количество Issues, загружаемые из Jira за 1 запрос
+	o Количество потоков при выгрузке из Jira
+	o Максимальное время ожидания для повторной отправки запроса в Jira
+	o Начальное время ожидания для повторной отправки запроса в Jira
+*/
 
 type ConfigRaeder struct {
 	viperConfigReader *viper.Viper

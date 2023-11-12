@@ -3,7 +3,7 @@ package main
 import "Jira-analyzer/jiraConnector/connector"
 
 func main() {
-	jiraConnector := connector.NewConnector()
+	jiraConnector := connector.CreateNewJiraConnector()
 	jiraConnector.GetProjects()
-	jiraConnector.GetProjectInfo("ACE")
+	jiraConnector.GetProjectIssues("ACE")
 }
