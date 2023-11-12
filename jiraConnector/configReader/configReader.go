@@ -11,7 +11,7 @@ type ConfigRaeder struct {
 func newConfigReader() *ConfigRaeder {
 	configReader := ConfigRaeder{}
 	configReader.viperConfigReader = viper.New()
-	configReader.viperConfigReader.SetConfigName("") //придумать имя конфига
+	configReader.viperConfigReader.SetConfigName("config.yaml") //придумать имя конфига
 	configReader.viperConfigReader.SetConfigType("yaml")
 	configReader.viperConfigReader.AddConfigPath("") //соответственно добавить путь
 
