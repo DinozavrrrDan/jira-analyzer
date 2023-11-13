@@ -6,7 +6,6 @@ import (
 	"Jira-analyzer/jiraConnector/models"
 	"Jira-analyzer/jiraConnector/transformer"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -56,41 +55,33 @@ func (connector *Connector) GetProjectIssues(projectName string) {
 }
 
 /*
-Возвращаемые проекты должны содержать следующие поля:
-ключ проекта
-имя проекта
-url проекта
-
 Параметр limit - сколько всего проектов необходимо вернуть
 Параметр page - порядковый номер страницы, который необходимо
 вернуть
 Параметр search - фильтр, который накладывается на название и ключ
-проекта. То есть запрос должен возвращать только те проекты,
-названия или ключ которых содержит значение параметра search
-В случае удачного выполнения запроса должен быть возвращен JSON,
-который содержит массив проектов и общее количество страниц при
-данном параметре limit
 */
-func (connector *Connector) GetProjects() {
+func (connector *Connector) GetProjects(limit int, page int, search string) models.Projects {
 	httpClient := &http.Client{}
-
 	resp, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/project")
 	if err != nil {
 		connector.logger.Log(logger.ERROR, "Error with get response from about projects ")
-		return
+		return models.Projects{}
 	}
 
 	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		connector.logger.Log(logger.ERROR, " ")
-		return
+		return models.Projects{}
 	}
+
 	var jiraProjects []models.JiraProject
 	err = json.Unmarshal(body, &jiraProjects) //получаем информацию через сериализацию
+
 	if err != nil {
 		connector.logger.Log(logger.ERROR, " ")
-		return
+		return models.Projects{}
+
 	}
 	var projects []models.Project
 
@@ -98,17 +89,27 @@ func (connector *Connector) GetProjects() {
 
 	//Получение информации о определенном колчичестве проектов
 	for _, element := range jiraProjects {
+		//Понять зачем search
 		counterOfProjects++
 		projects = append(projects, models.Project{
 			Name: element.Name,
 			Link: element.Link,
+			Key:  element.Key,
 		})
-		if counterOfProjects == 5 {
-			break
-		}
 	}
 
-	for i := 0; i < counterOfProjects; i++ {
-		fmt.Println(projects[i].Name + "  \t:  " + projects[i].Link)
+	//обрезка проектов по странице
+
+	startIndexOfProject := limit * (page - 1)
+	endIndexOfProject := limit * page
+	//подумать над косяками
+
+	return models.Projects{
+		Projects: projects[startIndexOfProject:endIndexOfProject],
+		Page: models.Page{
+			TotalPageCount:     int(counterOfProjects / limit),
+			CurrentPageNumber:  page,
+			TotalProjectsCount: counterOfProjects,
+		},
 	}
 }
