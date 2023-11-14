@@ -27,7 +27,6 @@ func TrasformData(issues models.IssuesList) {
 		ClosedTime:  closedTime,
 		UpdatedTime: updatedTime,
 	})
-
 	fmt.Println("1: Project:     " + transormedIssue[0].Project)
 	fmt.Println("2: Author:      " + transormedIssue[0].Author)
 	fmt.Println("3: Assignee:    " + transormedIssue[0].Assignee)

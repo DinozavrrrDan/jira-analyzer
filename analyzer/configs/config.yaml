@@ -4,8 +4,8 @@ issueInOneRequest: 100
 maxTimeSleep: -1
 minTimeSleep: -1
 
-hostDB: 127.0.0.1
+hostDB: localhost
 portDB: 5432 
-databaseName: jiraDb
+databaseName: jira
 passwordDB: 7777
 userDb: pgadmin

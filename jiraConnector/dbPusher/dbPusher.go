@@ -14,6 +14,8 @@ import (
 	"Jira-analyzer/jiraConnector/models"
 	"database/sql"
 	"fmt"
+
+	_ "github.com/lib/pq"
 )
 
 type DatabasePusher struct {
@@ -31,6 +33,7 @@ func CreateNewDatabasePusher() *DatabasePusher {
 		newReader.GetPasswordDB(),
 		newReader.GetDatabaseName())
 	newDatabase, err := sql.Open("postgres", psqlInfo)
+
 	if err != nil {
 
 	}
@@ -41,6 +44,5 @@ func CreateNewDatabasePusher() *DatabasePusher {
 	}
 }
 
-func (databasePusher *DatabasePusher) PushIssue(issues models.TransformedIssue) {
-
+func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue) {
 }
