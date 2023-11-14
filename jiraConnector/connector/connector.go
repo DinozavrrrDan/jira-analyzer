@@ -34,7 +34,6 @@ func (connector *Connector) GetProjectIssues(projectName string) {
 	httpClient := &http.Client{}
 
 	//temp
-	projectName = "ACE" //Просто для примера имя
 
 	response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
 	if err != nil || response.StatusCode != http.StatusOK {
