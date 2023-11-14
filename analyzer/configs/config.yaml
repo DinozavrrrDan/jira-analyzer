@@ -3,3 +3,9 @@ threadCount: -1
 issueInOneRequest: 100
 maxTimeSleep: -1
 minTimeSleep: -1
+
+host_db: 127.0.0.1
+port_db: 
+database_name: jiraDb
+password_db: 7777
+user_db: pgadmin
