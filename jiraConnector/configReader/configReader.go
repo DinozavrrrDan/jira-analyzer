@@ -44,3 +44,23 @@ func CreateNewConfigReader() *ConfigRaeder {
 func (configReader *ConfigRaeder) GetJiraUrl() string {
 	return configReader.viperConfigReader.GetString("jiraUrl")
 }
+
+func (configReader *ConfigRaeder) GetHostDB() string {
+	return configReader.viperConfigReader.GetString("jiraUrl")
+}
+
+func (configReader *ConfigRaeder) GetDatabaseName() string {
+	return configReader.viperConfigReader.GetString("jiraUrl")
+}
+
+func (configReader *ConfigRaeder) GetPasswordDB() string {
+	return configReader.viperConfigReader.GetString("jiraUrl")
+}
+
+func (configReader *ConfigRaeder) GetUserDb() string {
+	return configReader.viperConfigReader.GetString("jiraUrl")
+}
+
+func (configReader *ConfigRaeder) GetPortDB() string {
+	return configReader.viperConfigReader.GetString("jiraUrl")
+}
