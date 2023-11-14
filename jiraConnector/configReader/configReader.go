@@ -61,6 +61,6 @@ func (configReader *ConfigRaeder) GetUserDb() string {
 	return configReader.viperConfigReader.GetString("userDb")
 }
 
-func (configReader *ConfigRaeder) GetPortDB() string {
-	return configReader.viperConfigReader.GetString("portDB")
+func (configReader *ConfigRaeder) GetPortDB() int {
+	return configReader.viperConfigReader.GetInt("portDB")
 }

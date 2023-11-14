@@ -25,7 +25,11 @@ type DatabasePusher struct {
 func CreateNewDatabasePusher() *DatabasePusher {
 	newReader := configReader.CreateNewConfigReader()
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		newReader.GetHostDB(), newReader.GetPortDB(), newReader.GetUserDb(), newReader.GetPasswordDB(), newReader.GetDatabaseName())
+		newReader.GetHostDB(),
+		newReader.GetPortDB(),
+		newReader.GetUserDb(),
+		newReader.GetPasswordDB(),
+		newReader.GetDatabaseName())
 	newDatabase, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 
