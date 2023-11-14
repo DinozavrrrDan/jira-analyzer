@@ -13,6 +13,7 @@ import (
 	"Jira-analyzer/jiraConnector/logger"
 	"Jira-analyzer/jiraConnector/models"
 	"database/sql"
+	"fmt"
 )
 
 type DatabasePusher struct {
@@ -23,8 +24,9 @@ type DatabasePusher struct {
 
 func CreateNewDatabasePusher() *DatabasePusher {
 	newReader := configReader.CreateNewConfigReader()
-	//то что нужно из логгера в бд (БОРЯ)
-	newDatabase, err := sql.Open("postgres", "")
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		newReader.GetHostDB(), newReader.GetPortDB(), newReader.GetUserDb(), newReader.GetPasswordDB(), newReader.GetDatabaseName())
+	newDatabase, err := sql.Open("postgres", psqlInfo)
 	if err != nil {
 
 	}
