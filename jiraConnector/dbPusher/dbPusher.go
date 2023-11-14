@@ -35,7 +35,7 @@ func CreateNewDatabasePusher() *DatabasePusher {
 	newDatabase, err := sql.Open("postgres", psqlInfo)
 
 	if err != nil {
-
+		panic(err)
 	}
 	return &DatabasePusher{
 		configReader: newReader,
@@ -45,4 +45,20 @@ func CreateNewDatabasePusher() *DatabasePusher {
 }
 
 func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue) {
+	for i, issue := range issues {
+		_, err := databasePusher.database.Exec("INSERT INTO Issue (projectid, authorid, assigneeid, key, summary, description, type, priority, status, createdtime, closedtime, updatedtime, timespent) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)", i, i, i, issue.Assignee, issue.Key, issue.Summary, issue.Description, issue.Type, issue.Priority, issue.Status, issue.CreatedTime, issue.ClosedTime, issue.Timespent) //хз пока насчет id, пусть будет пока такой
+		if err != nil {
+			panic(err)
+		}
+
+		_, err = databasePusher.database.Exec("INSERT INTO Author (id, name) values ($1, $2)", i, issue.Author)
+		if err != nil {
+			panic(err)
+		}
+
+		_, err = databasePusher.database.Exec("INSERT INTO Projects (id, title) values ($1, $2)", i, issue.Project)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
