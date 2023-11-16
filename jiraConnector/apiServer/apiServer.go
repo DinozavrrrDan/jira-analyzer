@@ -34,7 +34,7 @@ func CreateNewApiServer() *ApiServer {
 	}
 }
 
-func (server *ApiServer) UpdateProject(responseWriter http.ResponseWriter, request *http.Request) {
+func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != "GET" {
 		server.logger.Log(logger.ERROR, "Incorrect")
 		return
@@ -55,7 +55,7 @@ func (server *ApiServer) UpdateProject(responseWriter http.ResponseWriter, reque
 	server.databasePusher.PushIssue(transformewIssues)
 }
 
-func (server *ApiServer) Project(responseWriter http.ResponseWriter, request *http.Request) {
+func (server *ApiServer) project(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != "GET" {
 		server.logger.Log(logger.ERROR, "Incorrect")
 		return
@@ -89,4 +89,10 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
 	}
 
 	return defaultLimit, defaultPage, defaultSearch
+}
+
+func (server *ApiServer) StrartServer() {
+	server.logger.Log(logger.INFO, "Server start server...")
+	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
+	http.HandleFunc("/api/v1/connector/projects", server.project)
 }
