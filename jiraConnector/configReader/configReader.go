@@ -64,3 +64,27 @@ func (configReader *ConfigRaeder) GetUserDb() string {
 func (configReader *ConfigRaeder) GetPortDB() int {
 	return configReader.viperConfigReader.GetInt("portDB")
 }
+
+func (configReader *ConfigRaeder) GetThreadCount() int {
+	return configReader.viperConfigReader.GetInt("threadCount")
+}
+
+func (configReader *ConfigRaeder) GetIssusOnOneRequest() int {
+	return configReader.viperConfigReader.GetInt("issueInOneRequest")
+}
+
+func (configReader *ConfigRaeder) GetMaxTimeSleep() int {
+	return configReader.viperConfigReader.GetInt("maxTimeSleep")
+}
+
+func (configReader *ConfigRaeder) GetMinTimeSleep() int {
+	return configReader.viperConfigReader.GetInt("maxTimeSleep")
+}
+
+func (configReader *ConfigRaeder) GetHostServer() string {
+	return configReader.viperConfigReader.GetString("hostServer")
+}
+
+func (configReader *ConfigRaeder) GetPortServer() int {
+	return configReader.viperConfigReader.GetInt("portServer")
+}

@@ -1,11 +1,14 @@
 jiraUrl: http://issues.apache.org/jira
-threadCount: -1
+threadCount: 10
 issueInOneRequest: 100
-maxTimeSleep: -1
-minTimeSleep: -1
+maxTimeSleep: 10000
+minTimeSleep: 50
 
 hostDB: localhost
 portDB: 5432 
 databaseName: testdb
 passwordDB: pgpwd
 userDb: pguser
+
+hostServer: localhost
+portServer: 8003
