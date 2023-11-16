@@ -6,7 +6,10 @@ import (
 	"time"
 )
 
-func TrasformData(issues []models.Issue) []models.TransformedIssue {
+type Transformer struct {
+}
+
+func (dataTransformer *Transformer) TrasformData(issues []models.Issue) []models.TransformedIssue {
 	var transformedIssues []models.TransformedIssue
 	for _, issue := range issues {
 
@@ -29,7 +32,6 @@ func TrasformData(issues []models.Issue) []models.TransformedIssue {
 			UpdatedTime: updatedTime,
 			Timespent:   0,
 		})
-
 	}
 	fmt.Println("1: Project:     " + transformedIssues[0].Project)
 	fmt.Println("2: Author:      " + transformedIssues[0].Author)
