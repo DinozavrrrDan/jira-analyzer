@@ -9,6 +9,10 @@ import (
 type Transformer struct {
 }
 
+func CreateNewTransformer() *Transformer {
+	return &Transformer{}
+}
+
 func (dataTransformer *Transformer) TrasformData(issues []models.Issue) []models.TransformedIssue {
 	var transformedIssues []models.TransformedIssue
 	for _, issue := range issues {
