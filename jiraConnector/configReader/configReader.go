@@ -64,3 +64,11 @@ func (configReader *ConfigRaeder) GetUserDb() string {
 func (configReader *ConfigRaeder) GetPortDB() int {
 	return configReader.viperConfigReader.GetInt("portDB")
 }
+
+func (configReader *ConfigRaeder) GetThreadCount() int {
+	return configReader.viperConfigReader.GetInt("threadCount")
+}
+
+func (configReader *ConfigRaeder) GetIssusOnOneRequest() int {
+	return configReader.viperConfigReader.GetInt("issueInOneRequest")
+}
