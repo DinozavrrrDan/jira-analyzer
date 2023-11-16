@@ -10,35 +10,6 @@ type Issue struct {
 	Fields IssueFields `json:"fields"`
 }
 
-/*
-Возвращаемые проекты должны содержать следующие поля:
-ключ проекта
-имя проекта
-url проекта
-*/
-type Project struct {
-	Key  string `json:"key"`
-	Name string `json:"name"`
-	Link string `json:"link"`
-}
-
-type JiraProject struct {
-	Key  string `json:"key"`
-	Name string `json:"name"`
-	Link string `json:"self"`
-}
-
-type Projects struct {
-	Projects []Project `json:"projects"`
-	Page     Page      `json:"page"`
-}
-
-type Page struct {
-	TotalPageCount     int `json:"totalPageCount"`
-	CurrentPageNumber  int `json:"currentPageNumber"`
-	TotalProjectsCount int `json:"totalProjectsCount"`
-}
-
 type IssueFields struct {
 	Summary string `json:"summary"`
 	Type    struct {
