@@ -20,7 +20,6 @@ type ApiServer struct {
 	jiraConnector  *connector.Connector
 	databasePusher *dbPusher.DatabasePusher
 	transformer    *transformer.Transformer
-	//	dbPusher     *dbPusher.DatabasePusher
 }
 
 func CreateNewApiServer() *ApiServer {
