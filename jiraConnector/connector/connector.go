@@ -118,6 +118,7 @@ func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Cl
 }
 
 /*
+Выгружает проекты
 Параметр limit - сколько всего проектов необходимо вернуть
 Параметр page - порядковый номер страницы, который необходимо
 вернуть
