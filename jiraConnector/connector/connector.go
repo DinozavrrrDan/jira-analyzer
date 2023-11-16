@@ -127,14 +127,19 @@ func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Cl
 		}(i)
 	}
 	waitGroup.Wait()
-	timeMultiplier := 2.0
 	if isError {
-		time.Sleep(time.Millisecond * time.Duration(timeUntilNewRequest))
-		timeUntilNewRequest = int(math.Ceil(float64(timeUntilNewRequest) * timeMultiplier))
-		connector.logger.Log(logger.INFO, "Can`t download issues from project \""+
-			projectName+"\", waiting "+strconv.Itoa(timeUntilNewRequest)+"ms")
+		timeUntilNewRequest = connector.increaseTimeUntilNewRequest(timeUntilNewRequest, projectName)
 	}
 	return issues, timeUntilNewRequest, !isError
+}
+
+func (connector *Connector) increaseTimeUntilNewRequest(timeUntilNewRequest int, projectName string) int {
+	timeMultiplier := 2.0
+	time.Sleep(time.Millisecond * time.Duration(timeUntilNewRequest))
+	newTimeUntilNewRequest := int(math.Ceil(float64(timeUntilNewRequest) * timeMultiplier))
+	connector.logger.Log(logger.INFO, "Can`t download issues from project \""+
+		projectName+"\": waiting "+strconv.Itoa(timeUntilNewRequest)+" Millisecond")
+	return newTimeUntilNewRequest
 }
 
 /*
