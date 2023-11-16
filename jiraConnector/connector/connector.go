@@ -6,6 +6,7 @@ import (
 	"Jira-analyzer/jiraConnector/models"
 	"Jira-analyzer/jiraConnector/transformer"
 	"encoding/json"
+	"time"
 
 	"io"
 	"math"
@@ -35,33 +36,48 @@ func CreateNewJiraConnector() *Connector {
 данном параметре limit
 */
 func (connector *Connector) GetProjectIssues(projectName string) []models.Issue {
-	httpClient := &http.Client{}
-	response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
-	if err != nil || response.StatusCode != http.StatusOK {
-		connector.logger.Log(logger.ERROR, "Error with get response from: ")
-		return []models.Issue{}
-	}
-
-	body, err := io.ReadAll(response.Body)
-	var issueResponce models.IssuesList
-	err = json.Unmarshal(body, &issueResponce)
-	if err != nil {
-		connector.logger.Log(logger.ERROR, " ")
-		return []models.Issue{}
-	}
-
-	counterOfIssues := issueResponce.IssuesCount
-	if counterOfIssues == 0 {
-		return []models.Issue{}
-	}
+	isRequestGompleteSuccsesfully := false
+	timeUntilNewRequest := connector.configReader.GetMinTimeSleep()
 	var issues []models.Issue
-	issues = connector.threadsFunc(counterOfIssues, httpClient, projectName)
-	transformer.TrasformData(issues)
 
+	for isRequestGompleteSuccsesfully || timeUntilNewRequest <= connector.configReader.GetMaxTimeSleep() {
+
+		httpClient := &http.Client{}
+
+		response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
+		if err != nil || response.StatusCode != http.StatusOK {
+			connector.logger.Log(logger.ERROR, "Error with get response from: ")
+			return []models.Issue{}
+		}
+
+		body, err := io.ReadAll(response.Body)
+
+		var issueResponce models.IssuesList
+		err = json.Unmarshal(body, &issueResponce)
+		if err != nil {
+			connector.logger.Log(logger.ERROR, " ")
+			return []models.Issue{}
+		}
+
+		counterOfIssues := issueResponce.IssuesCount
+		if counterOfIssues == 0 {
+			return []models.Issue{}
+		}
+
+		issues, timeUntilNewRequest, isRequestGompleteSuccsesfully = connector.threadsFunc(counterOfIssues, httpClient, projectName, timeUntilNewRequest)
+
+		//этот вызов уйдет
+		transformer.TrasformData(issues)
+
+	}
+	if timeUntilNewRequest > connector.configReader.GetMaxTimeSleep() {
+		connector.logger.Log(logger.ERROR, "Error, too much time!")
+		return []models.Issue{}
+	}
 	return issues
 }
 
-func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Client, projectName string) []models.Issue {
+func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Client, projectName string, timeUntilNewRequest int) ([]models.Issue, int, bool) {
 	var issues []models.Issue
 	counterOfThreads := connector.configReader.GetThreadCount()
 	issueInOneRequest := connector.configReader.GetIssusOnOneRequest()
@@ -110,11 +126,15 @@ func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Cl
 			}
 		}(i)
 	}
-	if isError {
-		//отправка повторного запроса
-	}
 	waitGroup.Wait()
-	return issues
+	timeMultiplier := 2.0
+	if isError {
+		time.Sleep(time.Millisecond * time.Duration(timeUntilNewRequest))
+		timeUntilNewRequest = int(math.Ceil(float64(timeUntilNewRequest) * timeMultiplier))
+		connector.logger.Log(logger.INFO, "Can`t download issues from project \""+
+			projectName+"\", waiting "+strconv.Itoa(timeUntilNewRequest)+"ms")
+	}
+	return issues, timeUntilNewRequest, !isError
 }
 
 /*
