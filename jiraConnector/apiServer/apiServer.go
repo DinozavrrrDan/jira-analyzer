@@ -35,7 +35,24 @@ func CreateNewApiServer() *ApiServer {
 }
 
 func (server *ApiServer) UpdateProject(responseWriter http.ResponseWriter, request *http.Request) {
+	if request.Method != "GET" {
+		server.logger.Log(logger.ERROR, "Incorrect")
+		return
+	}
 
+	projectName := request.URL.Query().Get("project")
+
+	if len(projectName) == 0 {
+		server.logger.Log(logger.ERROR, "Incorrect")
+		return
+	}
+
+	issues /*, err*/ := server.jiraConnector.GetProjectIssues(projectName)
+	//if err != nil {}
+
+	transformewIssues := server.transformer.TrasformData(issues)
+
+	server.databasePusher.PushIssue(transformewIssues)
 }
 
 func (server *ApiServer) Project(responseWriter http.ResponseWriter, request *http.Request) {
