@@ -1,4 +1,4 @@
-package apiserver
+package apiServer
 
 import (
 	"encoding/json"
@@ -34,11 +34,11 @@ func CreateNewApiServer() *ApiServer {
 	}
 }
 
-func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, request *http.Request) {
+func (server *ApiServer) UpdateProject(responseWriter http.ResponseWriter, request *http.Request) {
 
 }
 
-func (server *ApiServer) project(responseWriter http.ResponseWriter, request *http.Request) {
+func (server *ApiServer) Project(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != "GET" {
 		server.logger.Log(logger.ERROR, "Incorrect")
 		return
