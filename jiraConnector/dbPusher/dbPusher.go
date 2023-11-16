@@ -96,16 +96,25 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 			panic(err)
 		}
 
-		query, _ :=
+		stmt, err :=
 			databasePusher.database.Prepare("INSERT INTO Issue (projectid, authorid, assigneeid, key, summary, description, type, priority, status, createdtime, closedtime, updatedtime, timespent) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-		query.Exec(projectId, authorId, assigneeid, issue.Assignee, issue.Key, issue.Summary, issue.Description, issue.Type, issue.Priority, issue.Status, issue.CreatedTime, issue.ClosedTime, issue.UpdatedTime, issue.Timespent)
+		if err != nil {
+			panic(err)
+		}
+		stmt.Exec(projectId, authorId, assigneeid, issue.Assignee, issue.Key, issue.Summary, issue.Description, issue.Type, issue.Priority, issue.Status, issue.CreatedTime, issue.ClosedTime, issue.UpdatedTime, issue.Timespent)
 
-		query, _ =
+		stmt, err =
 			databasePusher.database.Prepare("INSERT INTO Author (id, name) values (?, ?)")
-		query.Exec(i, issue.Author)
+		if err != nil {
+			panic(err)
+		}
+		stmt.Exec(i, issue.Author)
 
-		query, _ =
+		stmt, err =
 			databasePusher.database.Prepare("INSERT INTO Project (id, title) values (?, ?)")
-		query.Exec(i, issue.Project)
+		if err != nil {
+			panic(err)
+		}
+		stmt.Exec(i, issue.Project)
 	}
 }
