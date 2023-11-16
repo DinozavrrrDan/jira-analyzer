@@ -44,21 +44,68 @@ func CreateNewDatabasePusher() *DatabasePusher {
 	}
 }
 
+func CheckIssueExists(db *sql.DB, table, column string, value string) bool {
+	row := db.QueryRow("SELECT * FROM $1 where $2 = $3", table, column, value)
+	err := row.Scan(&value)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
+}
+
+func CountRows(db *sql.DB, table string) (int, error) {
+	stmt, err := db.Prepare("SELECT COUNT(*) FROM ?")
+	if err != nil {
+		return 0, err
+	}
+
+	var count int
+	err = stmt.QueryRow(table).Scan(&count)
+	return count, err
+}
+
 func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue) {
 	for i, issue := range issues {
-		_, err := databasePusher.database.Exec("INSERT INTO Issue (projectid, authorid, assigneeid, key, summary, description, type, priority, status, createdtime, closedtime, updatedtime, timespent) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)", i, i, i, issue.Assignee, issue.Key, issue.Summary, issue.Description, issue.Type, issue.Priority, issue.Status, issue.CreatedTime, issue.ClosedTime, issue.Timespent) //хз пока насчет id, пусть будет пока такой
+		if CheckIssueExists(databasePusher.database, "Issue", "key", issue.Key) {
+			stmt, err :=
+				databasePusher.database.Prepare("UPDATE Issue set summary = ?, description = ?, type = ?, priority = ?, status = ?, closedtime = ?, updatedtime = ?, timespent = ? where key = ?")
+			if err != nil {
+				panic(err)
+			}
+			stmt.Exec(issue.Summary, issue.Description, issue.Type, issue.Priority, issue.Status, issue.ClosedTime, issue.UpdatedTime, issue.Timespent, issue.Key)
+
+			stmt, err =
+				databasePusher.database.Prepare("UPDATE Project set title = ? where key = ?")
+			if err != nil {
+				panic(err)
+			}
+			stmt.Exec(issue.Project, i)
+		}
+
+		authorId, err := CountRows(databasePusher.database, "Author")
+		if err != nil {
+			panic(err)
+		}
+		projectId, err := CountRows(databasePusher.database, "Project")
+		if err != nil {
+			panic(err)
+		}
+		assigneeid, err := CountRows(databasePusher.database, "Issue")
 		if err != nil {
 			panic(err)
 		}
 
-		_, err = databasePusher.database.Exec("INSERT INTO Author (id, name) values ($1, $2)", i, issue.Author)
-		if err != nil {
-			panic(err)
-		}
+		query, _ :=
+			databasePusher.database.Prepare("INSERT INTO Issue (projectid, authorid, assigneeid, key, summary, description, type, priority, status, createdtime, closedtime, updatedtime, timespent) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+		query.Exec(projectId, authorId, assigneeid, issue.Assignee, issue.Key, issue.Summary, issue.Description, issue.Type, issue.Priority, issue.Status, issue.CreatedTime, issue.ClosedTime, issue.UpdatedTime, issue.Timespent)
 
-		_, err = databasePusher.database.Exec("INSERT INTO Projects (id, title) values ($1, $2)", i, issue.Project)
-		if err != nil {
-			panic(err)
-		}
+		query, _ =
+			databasePusher.database.Prepare("INSERT INTO Author (id, name) values (?, ?)")
+		query.Exec(i, issue.Author)
+
+		query, _ =
+			databasePusher.database.Prepare("INSERT INTO Project (id, title) values (?, ?)")
+		query.Exec(i, issue.Project)
 	}
 }
