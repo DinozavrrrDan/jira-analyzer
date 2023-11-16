@@ -1,5 +1,5 @@
 jiraUrl: http://issues.apache.org/jira
-threadCount: -1
+threadCount: 10
 issueInOneRequest: 100
 maxTimeSleep: -1
 minTimeSleep: -1
