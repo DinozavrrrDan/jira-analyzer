@@ -4,7 +4,6 @@ import (
 	"Jira-analyzer/jiraConnector/configReader"
 	"Jira-analyzer/jiraConnector/logger"
 	"Jira-analyzer/jiraConnector/models"
-	"Jira-analyzer/jiraConnector/transformer"
 	"encoding/json"
 	"time"
 
@@ -65,9 +64,6 @@ func (connector *Connector) GetProjectIssues(projectName string) []models.Issue 
 		}
 
 		issues, timeUntilNewRequest, isRequestGompleteSuccsesfully = connector.threadsFunc(counterOfIssues, httpClient, projectName, timeUntilNewRequest)
-
-		//этот вызов уйдет
-		transformer.TrasformData(issues)
 
 	}
 	if timeUntilNewRequest > connector.configReader.GetMaxTimeSleep() {
