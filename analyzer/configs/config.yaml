@@ -1,7 +1,7 @@
 jiraUrl: http://issues.apache.org/jira
 threadCount: 10
 issueInOneRequest: 100
-maxTimeSleep: 10000
+maxTimeSleep: 8000
 minTimeSleep: 50
 
 hostDB: localhost
