@@ -95,4 +95,9 @@ func (server *ApiServer) StrartServer() {
 	server.logger.Log(logger.INFO, "Server start server...")
 	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
 	http.HandleFunc("/api/v1/connector/projects", server.project)
+	err := http.ListenAndServe(server.configReader.GetHostServer()+
+		":"+strconv.Itoa(server.configReader.GetPortServer()), nil)
+	if err != nil {
+		server.logger.Log(logger.ERROR, "Error while start a server")
+	}
 }
