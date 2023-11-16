@@ -6,6 +6,6 @@ minTimeSleep: -1
 
 hostDB: localhost
 portDB: 5432 
-databaseName: jira
-passwordDB: 7777
-userDb: pgadmin
+databaseName: testdb
+passwordDB: pgpwd
+userDb: pguser
