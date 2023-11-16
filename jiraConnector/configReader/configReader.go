@@ -80,3 +80,11 @@ func (configReader *ConfigRaeder) GetMaxTimeSleep() int {
 func (configReader *ConfigRaeder) GetMinTimeSleep() int {
 	return configReader.viperConfigReader.GetInt("maxTimeSleep")
 }
+
+func (configReader *ConfigRaeder) GetHostServer() string {
+	return configReader.viperConfigReader.GetString("hostServer")
+}
+
+func (configReader *ConfigRaeder) GetPortServer() int {
+	return configReader.viperConfigReader.GetInt("portServer")
+}

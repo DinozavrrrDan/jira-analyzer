@@ -9,3 +9,6 @@ portDB: 5432
 databaseName: jira
 passwordDB: 7777
 userDb: pgadmin
+
+hostServer: localhost
+portServer: 8003
