@@ -88,3 +88,9 @@ func (configReader *ConfigRaeder) GetHostServer() string {
 func (configReader *ConfigRaeder) GetPortServer() int {
 	return configReader.viperConfigReader.GetInt("portServer")
 }
+
+func (configReader *ConfigRaeder) GetApiPrefix() string {
+	return configReader.viperConfigReader.GetString("apiPref")
+}
+
+//apiPref: /api/v1
