@@ -92,5 +92,3 @@ func (configReader *ConfigRaeder) GetPortServer() int {
 func (configReader *ConfigRaeder) GetApiPrefix() string {
 	return configReader.viperConfigReader.GetString("apiPref")
 }
-
-//apiPref: /api/v1
