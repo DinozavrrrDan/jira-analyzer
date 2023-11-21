@@ -17,7 +17,7 @@ type ListOfReferens struct {
 	} `json:"self"`
 }
 
-type ResponseStrucr struct {
+type ResponseStrucrt struct {
 	Links ListOfReferens `json:"_links"`
 	//придумать как предавать info в случае разных запросов
 	Message string `json:"message"`
@@ -28,7 +28,7 @@ type ResponseStrucr struct {
 type DataInfoIssue struct {
 	IssueID  string `json:"id"`
 	Projects struct {
-		ProjectID string `json:"id"`
+		ProjectID string `json:"projectID"`
 		Key       string `json:"key"`
 		Name      string `json:"name"`
 		Url       string `json:"url"`
@@ -53,4 +53,9 @@ type DataInfoHistory struct {
 	ChangeTime uint64 `json:"changeTime"`
 	FromStatus string `json:"fromStatus"`
 	ToStatus   string `json:"toStatus"`
+}
+
+type DataInfoProject struct {
+	ProjectID string `json:"projectID"`
+	Title     int    `json:"title"`
 }
