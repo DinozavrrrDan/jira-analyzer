@@ -12,8 +12,6 @@ import (
 	"Jira-analyzer/jiraConnector/transformer"
 )
 
-//Как я понял он создает просто все части
-
 type ApiServer struct {
 	configReader   *configReader.ConfigRaeder
 	logger         *logger.JiraLogger

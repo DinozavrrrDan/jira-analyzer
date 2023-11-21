@@ -12,3 +12,5 @@ userDb: pguser
 
 hostServer: localhost
 portServer: 8003
+
+apiPref: /api/v1
