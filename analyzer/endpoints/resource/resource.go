@@ -1,8 +1,11 @@
 package resource
 
 import (
+	"Jira-analyzer/analyzer/endpoints/models"
 	"Jira-analyzer/jiraConnector/configReader"
 	"Jira-analyzer/jiraConnector/logger"
+	"encoding/json"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -67,4 +70,100 @@ func (resourseHandler *ResourseHandler) HandleGetProject(responseWriter http.Res
 		return
 	}
 	//работа с полученной инфой и формирование ответа
+}
+
+func (resourseHandler *ResourseHandler) HandlePostIssue(responseWriter http.ResponseWriter, request *http.Request) {
+	body, err := io.ReadAll(request.Body)
+	if err != nil {
+		return
+	}
+
+	var requestDataIssue models.DataInfoIssue
+	err = json.Unmarshal(body, &requestDataIssue)
+
+	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, "error when encoding request")
+		return
+	}
+	var statusCode int
+	//id, err := PutIssueIntoDB функция которая будет помещать узел в БД БОРЯ
+	if err != nil {
+		//как-то напишем об ошибке
+		//statusCode = http.Status - подобрать верный статус
+	} else {
+		//statusCode = http.Status - подобрать верный статус
+	}
+	statusCode = statusCode + 1 // заглушка
+	response, err := json.Marshal(models.ResponseStrucrt{})
+	if err != nil {
+
+	}
+	_, err = responseWriter.Write(response)
+	if err != nil {
+
+	}
+}
+
+func (resourseHandler *ResourseHandler) HandlePostHistory(responseWriter http.ResponseWriter, request *http.Request) {
+	body, err := io.ReadAll(request.Body)
+	if err != nil {
+		return
+	}
+
+	var requestDataIssue models.DataInfoHistory
+	err = json.Unmarshal(body, &requestDataIssue)
+
+	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, "error when encoding request")
+		return
+	}
+	var statusCode int
+	//id, err := PutIssueIntoDB функция которая будет помещать узел в БД БОРЯ
+	if err != nil {
+		//как-то напишем об ошибке
+		//statusCode = http.Status - подобрать верный статус
+	} else {
+		//statusCode = http.Status - подобрать верный статус
+	}
+	statusCode = statusCode + 1 // заглушка
+	response, err := json.Marshal(models.ResponseStrucrt{})
+	if err != nil {
+
+	}
+	_, err = responseWriter.Write(response)
+	if err != nil {
+
+	}
+}
+
+func (resourseHandler *ResourseHandler) HandlePostProject(responseWriter http.ResponseWriter, request *http.Request) {
+	body, err := io.ReadAll(request.Body)
+	if err != nil {
+		return
+	}
+
+	var requestDataIssue models.DataInfoProject
+	err = json.Unmarshal(body, &requestDataIssue)
+
+	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, "error when encoding request")
+		return
+	}
+	var statusCode int
+	//id, err := PutIssueIntoDB функция которая будет помещать узел в БД БОРЯ
+	if err != nil {
+		//как-то напишем об ошибке
+		//statusCode = http.Status - подобрать верный статус
+	} else {
+		//statusCode = http.Status - подобрать верный статус
+	}
+	statusCode = statusCode + 1 // заглушка
+	response, err := json.Marshal(models.ResponseStrucrt{})
+	if err != nil {
+
+	}
+	_, err = responseWriter.Write(response)
+	if err != nil {
+
+	}
 }
