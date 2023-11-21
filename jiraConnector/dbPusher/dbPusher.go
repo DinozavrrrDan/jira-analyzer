@@ -72,14 +72,14 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 			stmt, err :=
 				databasePusher.database.Prepare("UPDATE issues set summary = ?, description = ?, type = ?, priority = ?, status = ?, closedtime = ?, updatedtime = ?, timespent = ? where key = ?")
 			if err != nil {
-				panic(err)
+				databasePusher.logger.Log(logger.ERROR, err.Error())
 			}
 			stmt.Exec(issue.Summary, issue.Description, issue.Type, issue.Priority, issue.Status, issue.ClosedTime, issue.UpdatedTime, issue.Timespent, issue.Key)
 
 			stmt, err =
 				databasePusher.database.Prepare("UPDATE project set title = ? where id = ?")
 			if err != nil {
-				panic(err)
+				databasePusher.logger.Log(logger.ERROR, err.Error())
 			}
 			projectId := databasePusher.database.QueryRow("SELECT projectId FROM $1 where $2 = $3", "issues", "assigneeId", id)
 			stmt.Exec(issue.Project, projectId)
@@ -87,7 +87,7 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 			stmt, err =
 				databasePusher.database.Prepare("UPDATE author set name = ? where id = ?")
 			if err != nil {
-				panic(err)
+				databasePusher.logger.Log(logger.ERROR, err.Error())
 			}
 			authorId := databasePusher.database.QueryRow("SELECT authorId FROM $1 where $2 = $3", "issues", "assigneeId", id)
 			stmt.Exec(issue.Author, authorId)
@@ -95,49 +95,49 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 			stmt, err =
 				databasePusher.database.Prepare("UPDATE statusChanges set changeTime = ?, fromStatus = ?, toStatus = ? where id = ?")
 			if err != nil {
-				panic(err)
+				databasePusher.logger.Log(logger.ERROR, err.Error())
 			}
 			stmt.Exec(777, "idk", "idk", authorId)
 		}
 
 		newProjectId, err := CountRows(databasePusher.database, "project")
 		if err != nil {
-			panic(err)
+			databasePusher.logger.Log(logger.ERROR, err.Error())
 		}
 		newAuthorId, err := CountRows(databasePusher.database, "author")
 		if err != nil {
-			panic(err)
+			databasePusher.logger.Log(logger.ERROR, err.Error())
 		}
 		newAssigneeid, err := CountRows(databasePusher.database, "issues")
 		if err != nil {
-			panic(err)
+			databasePusher.logger.Log(logger.ERROR, err.Error())
 		}
 
 		stmt, err :=
 			databasePusher.database.Prepare("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
 		if err != nil {
-			panic(err)
+			databasePusher.logger.Log(logger.ERROR, err.Error())
 		}
 		stmt.Exec(newProjectId, newAuthorId, newAssigneeid, issue.Assignee, issue.Key, issue.Summary, issue.Description, issue.Type, issue.Priority, issue.Status, issue.CreatedTime, issue.ClosedTime, issue.UpdatedTime, issue.Timespent)
 
 		stmt, err =
 			databasePusher.database.Prepare("INSERT INTO project (id, title) values (?, ?)")
 		if err != nil {
-			panic(err)
+			databasePusher.logger.Log(logger.ERROR, err.Error())
 		}
 		stmt.Exec(newProjectId, issue.Project)
 
 		stmt, err =
 			databasePusher.database.Prepare("INSERT INTO author (id, name) values (?, ?)")
 		if err != nil {
-			panic(err)
+			databasePusher.logger.Log(logger.ERROR, err.Error())
 		}
 		stmt.Exec(newAuthorId, issue.Author)
 
 		stmt, err =
 			databasePusher.database.Prepare("INSERT INTO statusChange (issueId, authorId, changeTime, fromStatus, toStatus) values (?, ?, ?, ?, ?)")
 		if err != nil {
-			panic(err)
+			databasePusher.logger.Log(logger.ERROR, err.Error())
 		}
 		stmt.Exec(newAssigneeid, newAuthorId, 777, "idk", "idk")
 	}
