@@ -1,0 +1,24 @@
+<div class="compare-body">
+  <h2 class="header">Сравнение</h2>
+<div class="body" *ngIf="!noProjects && inited">
+  <p>Выберите проекты, на основе которых будет производиться сравнение (2-3)</p>
+  <project-checkbox (onChecked)="childOnChecked($event)"
+                    *ngFor="let project of projects" [project]= "project">
+
+  </project-checkbox>
+  <button class="btn my-2" (click)="onClickCompare()">Сравнить</button>
+</div>
+  <div class="body_empty" *ngIf="noProjects && inited">
+    <p>Вы не выбрали ни одного проекта для аналитики</p>
+    <div class="icon">
+      <a href="http://{{webUrl}}/">
+        <img src="/assets/images/icon.png" alt="Политех">
+      </a>
+    </div>
+  </div>
+</div>
+
+
+
+
+
