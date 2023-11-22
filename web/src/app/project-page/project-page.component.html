@@ -1,0 +1,39 @@
+<p *ngIf="loading" class="text-center text-lg">Loading...</p>
+
+<div class="wrapper">
+<h2 class="header">
+  Проекты
+</h2>
+
+<div class="d2">
+  <input placeholder="Поиск по странице..."
+         id="search-project"
+         type="text"
+         class="validate"
+         [(ngModel)]="searchName"
+         (keyup.enter)="getSearchProjects()"
+  >
+</div>
+</div>
+
+<table class="tbl">
+  <thead>
+  <tr>
+    <th class="th1">Название</th>
+    <th class="th2">URL</th>
+    <th class="th3">Действие</th>
+  </tr>
+  </thead>
+</table>
+
+<app-project *ngFor="let project of projects | paginate: {
+                                        itemsPerPage: 10,
+                                        currentPage: pageInfo.currentPage,
+                                        totalItems: pageInfo.projectsCount
+                                        }"
+             [project]= "project">
+</app-project>
+<br>
+<pagination-controls
+  (pageChange)="gty((pageInfo.currentPage = $event))">
+</pagination-controls>
