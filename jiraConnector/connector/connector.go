@@ -5,6 +5,7 @@ import (
 	"Jira-analyzer/jiraConnector/logger"
 	"Jira-analyzer/jiraConnector/models"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"io"
@@ -22,6 +23,7 @@ type Connector struct {
 
 func CreateNewJiraConnector() *Connector {
 	newReader := configReader.CreateNewConfigReader()
+	fmt.Printf(newReader.GetJiraUrl())
 	return &Connector{
 		logger:            logger.CreateNewLogger(),
 		configReader:      newReader,
@@ -146,8 +148,7 @@ func (connector *Connector) increaseTimeUntilNewRequest(timeUntilNewRequest int,
 Параметр search - фильтр, который накладывается на название и ключ
 */
 func (connector *Connector) GetProjects(limit int, page int, search string) models.Projects {
-	httpClient := &http.Client{}
-	response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/project")
+	response, err := http.Get(connector.jiraRepositoryUrl + "/rest/api/2/project")
 	if err != nil || response.StatusCode != http.StatusOK {
 		connector.logger.Log(logger.ERROR, "Error with get response from about projects ")
 		return models.Projects{}
