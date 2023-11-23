@@ -30,8 +30,8 @@ func CreateNewLogger() *JiraLogger {
 	logs, _ := os.OpenFile("../logs/logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	errors, _ := os.OpenFile("../logs/err_logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 
-	logFile := io.MultiWriter(logs)
-	errFile := io.MultiWriter(os.Stderr, errors)
+	logFile := io.MultiWriter(os.Stdout, logs)
+	errFile := io.MultiWriter(os.Stdout, errors)
 
 	return &JiraLogger{
 		logger:  logger,
