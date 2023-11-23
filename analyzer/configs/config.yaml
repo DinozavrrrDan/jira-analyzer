@@ -1,4 +1,4 @@
-jiraUrl: http://issues.apache.org/jira
+jiraUrl: https://issues.apache.org/jira
 threadCount: 10
 issueInOneRequest: 100
 maxTimeSleep: 8000
