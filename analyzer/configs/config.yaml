@@ -11,6 +11,6 @@ passwordDB: pgpwd
 userDB: pguser
 
 hostServer: localhost
-portServer: 8003
+portServer: 8080
 
 apiPref: /api/v1

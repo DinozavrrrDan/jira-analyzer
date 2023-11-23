@@ -14,7 +14,7 @@ import (
 )
 
 type ApiServer struct {
-	configReader   *configReader.ConfigRaeder
+	configReader   *configReader.ConfigReader
 	logger         *logger.JiraLogger
 	jiraConnector  *connector.Connector
 	databasePusher *dbPusher.DatabasePusher
@@ -99,7 +99,6 @@ func (server *ApiServer) StartServer() {
 	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
 	http.HandleFunc("/api/v1/connector/projects", server.project)
 	http.HandleFunc("/", server.hand)
-	fmt.Print(":8080", nil)
 
 	err := http.ListenAndServe("localhost:8003", nil)
 
