@@ -90,8 +90,8 @@ func (resourseHandler *ResourseHandler) HandleGetProject(rw http.ResponseWriter,
 	rw.WriteHeader(http.StatusOK)
 }
 
-func (resourseHandler *ResourseHandler) HandlePostIssue(responseWriter http.ResponseWriter, request *http.Request) {
-	body, err := io.ReadAll(request.Body)
+func (resourseHandler *ResourseHandler) HandlePostIssue(rw http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		resourseHandler.logger.Log(logger.ERROR, err.Error())
 		http.Error(rw, err.Error(), http.StatusBadRequest)
@@ -119,7 +119,7 @@ func (resourseHandler *ResourseHandler) HandlePostIssue(responseWriter http.Resp
 	if err != nil {
 
 	}
-	_, err = responseWriter.Write(response)
+	_, err = rw.Write(response)
 	if err != nil {
 
 	}
