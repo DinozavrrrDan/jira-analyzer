@@ -31,9 +31,9 @@ type ConfigReader struct {
 func CreateNewConfigReader() *ConfigReader {
 	configReader := ConfigReader{}
 	configReader.viperConfigReader = viper.New()
-	configReader.viperConfigReader.SetConfigName("config") //придумать имя конфига
+	configReader.viperConfigReader.SetConfigName("config")
 	configReader.viperConfigReader.SetConfigType("yaml")
-	configReader.viperConfigReader.AddConfigPath("analyzer/configs") //соответственно добавить путь
+	configReader.viperConfigReader.AddConfigPath("../../analyzer/configs")
 	viperLogger := logger.CreateNewLogger()
 	if err := configReader.viperConfigReader.ReadInConfig(); err != nil {
 		viperLogger.Log(logger.ERROR, err.Error())
@@ -50,7 +50,7 @@ func (configReader *ConfigReader) GetHostDB() string {
 }
 
 func (configReader *ConfigReader) GetDatabaseName() string {
-	return configReader.viperConfigReader.GetString("databaseName")
+	return configReader.viperConfigReader.GetString("NameDB")
 }
 
 func (configReader *ConfigReader) GetPasswordDB() string {
@@ -58,7 +58,7 @@ func (configReader *ConfigReader) GetPasswordDB() string {
 }
 
 func (configReader *ConfigReader) GetUserDb() string {
-	return configReader.viperConfigReader.GetString("userDb")
+	return configReader.viperConfigReader.GetString("userDB")
 }
 
 func (configReader *ConfigReader) GetPortDB() int {
