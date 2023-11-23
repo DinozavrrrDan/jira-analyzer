@@ -1,7 +1,6 @@
 package resource
 
 import (
-	"Jira-analyzer/analyzer/endpoints/models"
 	"Jira-analyzer/jiraConnector/configReader"
 	"Jira-analyzer/jiraConnector/logger"
 	"encoding/json"
@@ -13,7 +12,7 @@ import (
 )
 
 type ResourseHandler struct {
-	configReader *configReader.ConfigRaeder
+	configReader *configReader.ConfigReader
 	logger       *logger.JiraLogger
 }
 
@@ -24,65 +23,87 @@ func CreateNewResourseHandler() *ResourseHandler {
 	}
 }
 
-func (resourseHandler *ResourseHandler) HandleGetIssue(responseWriter http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
+func (resourseHandler *ResourseHandler) HandleGetIssue(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		resourseHandler.logger.Log(logger.INFO, "Invalid ID!") //Подумать над уровнем логирования
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//Фунция которую реализует БОРЯ
-	id = id + 1 //заглушка
-	//issue, err := ВОТ ТУТ ДОЛЖНА БЫТЬ ДЛЯ ISSUES
+
+	issue, err := GetIssueInfoByID(id)
 	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//работа с полученной инфой и формирование ответа
+
+	project, err := GetProjectInfoByID(issue.ProjectID)
+	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	resourseHandler.logger.Log(logger.INFO, "HandleGetIssue successfully")
+	rw.WriteHeader(http.StatusOK)
 }
 
-func (resourseHandler *ResourseHandler) HandleGetHistory(responseWriter http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
+func (resourseHandler *ResourseHandler) HandleGetHistory(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		resourseHandler.logger.Log(logger.INFO, "Invalid ID!") //Подумать над уровнем логирования
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//Фунция которую реализует БОРЯ
-	id = id + 1 //заглушка
-	//issue, err := ВОТ ТУТ ДОЛЖНА БЫТЬ ДЛЯ ИСТОРИИ
+
+	history, err := GetAllHistoryInfoByIssueID(id)
 	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//работа с полученной инфой и формирование ответа
+
+	resourseHandler.logger.Log(logger.INFO, "HandleGetHistory successfully")
+	rw.WriteHeader(http.StatusOK)
 }
 
-func (resourseHandler *ResourseHandler) HandleGetProject(responseWriter http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
+func (resourseHandler *ResourseHandler) HandleGetProject(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		resourseHandler.logger.Log(logger.INFO, "Invalid ID!") //Подумать над уровнем логирования
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//Фунция которую реализует БОРЯ
-	id = id + 1 //заглушка
-	//issue, err := ВОТ ТУТ ДОЛЖНА БЫТЬ ДЛЯ ПРОЕКТОВ
+
+	project, err := GetProjectInfoByID(id)
 	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//работа с полученной инфой и формирование ответа
+
+	resourseHandler.logger.Log(logger.INFO, "HandleGetProject successfully")
+	rw.WriteHeader(http.StatusOK)
 }
 
 func (resourseHandler *ResourseHandler) HandlePostIssue(responseWriter http.ResponseWriter, request *http.Request) {
 	body, err := io.ReadAll(request.Body)
 	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var requestDataIssue models.DataInfoIssue
+	var requestDataIssue models.IssueInfo
 	err = json.Unmarshal(body, &requestDataIssue)
 
 	if err != nil {
-		resourseHandler.logger.Log(logger.ERROR, "error when encoding request")
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 	var statusCode int
@@ -104,17 +125,20 @@ func (resourseHandler *ResourseHandler) HandlePostIssue(responseWriter http.Resp
 	}
 }
 
-func (resourseHandler *ResourseHandler) HandlePostHistory(responseWriter http.ResponseWriter, request *http.Request) {
-	body, err := io.ReadAll(request.Body)
+func (resourseHandler *ResourseHandler) HandlePostHistory(rw http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var requestDataIssue models.DataInfoHistory
+	var requestDataIssue models.HistoryInfo
 	err = json.Unmarshal(body, &requestDataIssue)
 
 	if err != nil {
-		resourseHandler.logger.Log(logger.ERROR, "error when encoding request")
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 	var statusCode int
@@ -128,42 +152,56 @@ func (resourseHandler *ResourseHandler) HandlePostHistory(responseWriter http.Re
 	statusCode = statusCode + 1 // заглушка
 	response, err := json.Marshal(models.ResponseStrucrt{})
 	if err != nil {
-
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 	_, err = responseWriter.Write(response)
 	if err != nil {
-
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 }
 
-func (resourseHandler *ResourseHandler) HandlePostProject(responseWriter http.ResponseWriter, request *http.Request) {
-	body, err := io.ReadAll(request.Body)
+func (resourseHandler *ResourseHandler) HandlePostProject(rw http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	var requestDataIssue models.DataInfoProject
+	var requestDataIssue models.ProjectInfo
 	err = json.Unmarshal(body, &requestDataIssue)
 
 	if err != nil {
-		resourseHandler.logger.Log(logger.ERROR, "error when encoding request")
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
 	var statusCode int
 	//id, err := PutIssueIntoDB функция которая будет помещать узел в БД БОРЯ
 	if err != nil {
-		//как-то напишем об ошибке
-		//statusCode = http.Status - подобрать верный статус
+		if err != nil {
+			resourseHandler.logger.Log(logger.ERROR, err.Error())
+			http.Error(rw, err.Error(), http.StatusBadRequest)
+			return
+		}
 	} else {
 		//statusCode = http.Status - подобрать верный статус
 	}
 	statusCode = statusCode + 1 // заглушка
 	response, err := json.Marshal(models.ResponseStrucrt{})
 	if err != nil {
-
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
-	_, err = responseWriter.Write(response)
+	_, err = rw.Write(response)
 	if err != nil {
-
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 }
