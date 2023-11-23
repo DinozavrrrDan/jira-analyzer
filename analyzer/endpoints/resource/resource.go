@@ -3,12 +3,11 @@ package resource
 import (
 	"Jira-analyzer/jiraConnector/configReader"
 	"Jira-analyzer/jiraConnector/logger"
-	"bytes"
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -49,39 +48,44 @@ func (resourseHandler *ResourseHandler) HandleGetIssue(rw http.ResponseWriter, r
 	}
 
 	rw.WriteHeader(http.StatusOK)
-	http.ServeContent(rw, r, "", time.Now(), bytes.NewReader(data))
 }
 
-func (resourseHandler *ResourseHandler) HandleGetHistory(responseWriter http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
+func (resourseHandler *ResourseHandler) HandleGetHistory(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		resourseHandler.logger.Log(logger.INFO, "Invalid ID!") //Подумать над уровнем логирования
+		log.Printf("Invalid Issue ID in path \"%s\"", r.URL.Path)
+		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	//Фунция которую реализует БОРЯ
-	id = id + 1 //заглушка
-	//issue, err := ВОТ ТУТ ДОЛЖНА БЫТЬ ДЛЯ ИСТОРИИ
+
+	history, err := GetAllHistoryInfoByIssueID(id)
 	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//работа с полученной инфой и формирование ответа
+
+	rw.WriteHeader(http.StatusOK)
 }
 
-func (resourseHandler *ResourseHandler) HandleGetProject(responseWriter http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
+func (resourseHandler *ResourseHandler) HandleGetProject(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		resourseHandler.logger.Log(logger.INFO, "Invalid ID!") //Подумать над уровнем логирования
+		log.Printf("Invalid Issue ID in path \"%s\"", r.URL.Path)
+		rw.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	//Фунция которую реализует БОРЯ
-	id = id + 1 //заглушка
-	//issue, err := ВОТ ТУТ ДОЛЖНА БЫТЬ ДЛЯ ПРОЕКТОВ
+
+	project, err := GetProjectInfoByID(id)
 	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//работа с полученной инфой и формирование ответа
+
+	rw.WriteHeader(http.StatusOK)
 }
 
 func (resourseHandler *ResourseHandler) HandlePostIssue(responseWriter http.ResponseWriter, request *http.Request) {
