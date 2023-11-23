@@ -60,9 +60,13 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 		server.logger.Log(logger.ERROR, "Incorrect")
 		return
 	}
+
 	limit, page, search := getProjectParametersFromRequest(request)
-	//responseWriter.Header().Set("Content-Type", "application/json")
+
+	responseWriter.Header().Set("Content-Type", "application/json")
+
 	server.logger.Log(logger.INFO, "RETURN PROJECTS")
+
 	projets /*, err*/ := server.jiraConnector.GetProjects(limit, page, search)
 	//if err != nil {}
 	response, _ := json.Marshal(projets)
@@ -98,17 +102,10 @@ func (server *ApiServer) StartServer() {
 
 	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
 	http.HandleFunc("/api/v1/connector/projects", server.project)
-	http.HandleFunc("/", server.hand)
 
 	err := http.ListenAndServe("localhost:8003", nil)
 
 	if err != nil {
 		server.logger.Log(logger.ERROR, "Error while start a server")
 	}
-}
-
-func (server *ApiServer) hand(responseWriter http.ResponseWriter, request *http.Request) {
-	responseWriter.WriteHeader(http.StatusOK)
-	fmt.Print("hand work")
-	server.logger.Log(logger.INFO, "hand work!")
 }
