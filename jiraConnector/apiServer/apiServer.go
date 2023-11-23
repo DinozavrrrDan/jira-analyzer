@@ -56,14 +56,12 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 
 func (server *ApiServer) project(responseWriter http.ResponseWriter, request *http.Request) {
 	fmt.Print("project work")
-
-	responseWriter.WriteHeader(http.StatusOK)
 	if request.Method != "GET" {
 		server.logger.Log(logger.ERROR, "Incorrect")
 		return
 	}
 	limit, page, search := getProjectParametersFromRequest(request)
-	responseWriter.Header().Set("Content-Type", "application/json")
+	//responseWriter.Header().Set("Content-Type", "application/json")
 	server.logger.Log(logger.INFO, "RETURN PROJECTS")
 	projets /*, err*/ := server.jiraConnector.GetProjects(limit, page, search)
 	//if err != nil {}
@@ -101,9 +99,9 @@ func (server *ApiServer) StartServer() {
 	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
 	http.HandleFunc("/api/v1/connector/projects", server.project)
 	http.HandleFunc("/", server.hand)
-	fmt.Print(server.configReader.GetHostServer()+":"+strconv.Itoa(int(server.configReader.GetPortServer())), nil)
+	fmt.Print(":8080", nil)
 
-	err := http.ListenAndServe(server.configReader.GetHostServer()+":"+strconv.Itoa(int(server.configReader.GetPortServer())), nil)
+	err := http.ListenAndServe("localhost:8003", nil)
 
 	if err != nil {
 		server.logger.Log(logger.ERROR, "Error while start a server")
