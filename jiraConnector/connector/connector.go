@@ -156,7 +156,7 @@ func (connector *Connector) GetProjects(limit int, page int, search string) mode
 	body, err := io.ReadAll(response.Body)
 
 	if err != nil {
-		connector.logger.Log(logger.ERROR, "156 connector.go ")
+		connector.logger.Log(logger.ERROR, " ")
 		return models.Projects{}
 	}
 
@@ -164,7 +164,7 @@ func (connector *Connector) GetProjects(limit int, page int, search string) mode
 	err = json.Unmarshal(body, &jiraProjects) //получаем информацию через сериализацию
 
 	if err != nil {
-		connector.logger.Log(logger.ERROR, "164 connector.go ")
+		connector.logger.Log(logger.ERROR, " ")
 		return models.Projects{}
 
 	}
