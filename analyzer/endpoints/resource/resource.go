@@ -1,19 +1,20 @@
 package resource
 
 import (
-	"Jira-analyzer/analyzer/endpoints/models"
 	"Jira-analyzer/jiraConnector/configReader"
 	"Jira-analyzer/jiraConnector/logger"
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
 
 type ResourseHandler struct {
-	configReader *configReader.ConfigRaeder
+	configReader *configReader.ConfigReader
 	logger       *logger.JiraLogger
 }
 
@@ -24,20 +25,31 @@ func CreateNewResourseHandler() *ResourseHandler {
 	}
 }
 
-func (resourseHandler *ResourseHandler) HandleGetIssue(responseWriter http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
+func (resourseHandler *ResourseHandler) HandleGetIssue(rw http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		resourseHandler.logger.Log(logger.INFO, "Invalid ID!") //Подумать над уровнем логирования
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//Фунция которую реализует БОРЯ
-	id = id + 1 //заглушка
-	//issue, err := ВОТ ТУТ ДОЛЖНА БЫТЬ ДЛЯ ISSUES
+
+	issue, err := GetIssueInfoByID(id)
 	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
 		return
 	}
-	//работа с полученной инфой и формирование ответа
+
+	project, err := GetProjectInfoByID(issue.ProjectID)
+	if err != nil {
+		resourseHandler.logger.Log(logger.ERROR, err.Error())
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+	http.ServeContent(rw, r, "", time.Now(), bytes.NewReader(data))
 }
 
 func (resourseHandler *ResourseHandler) HandleGetHistory(responseWriter http.ResponseWriter, request *http.Request) {
@@ -78,7 +90,7 @@ func (resourseHandler *ResourseHandler) HandlePostIssue(responseWriter http.Resp
 		return
 	}
 
-	var requestDataIssue models.DataInfoIssue
+	var requestDataIssue models.IssueInfo
 	err = json.Unmarshal(body, &requestDataIssue)
 
 	if err != nil {
@@ -110,7 +122,7 @@ func (resourseHandler *ResourseHandler) HandlePostHistory(responseWriter http.Re
 		return
 	}
 
-	var requestDataIssue models.DataInfoHistory
+	var requestDataIssue models.HistoryInfo
 	err = json.Unmarshal(body, &requestDataIssue)
 
 	if err != nil {
@@ -142,7 +154,7 @@ func (resourseHandler *ResourseHandler) HandlePostProject(responseWriter http.Re
 		return
 	}
 
-	var requestDataIssue models.DataInfoProject
+	var requestDataIssue models.ProjectInfo
 	err = json.Unmarshal(body, &requestDataIssue)
 
 	if err != nil {

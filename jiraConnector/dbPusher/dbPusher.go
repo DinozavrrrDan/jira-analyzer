@@ -20,7 +20,7 @@ import (
 )
 
 type DatabasePusher struct {
-	configReader *configReader.ConfigRaeder
+	configReader *configReader.ConfigReader
 	logger       *logger.JiraLogger
 	database     *sql.DB
 }
