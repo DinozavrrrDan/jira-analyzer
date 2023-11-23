@@ -2,6 +2,7 @@ package apiServer
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -32,8 +33,9 @@ func CreateNewApiServer() *ApiServer {
 }
 
 func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, request *http.Request) {
-	if request.Method != "GET" {
+	if request.Method != "POST" {
 		server.logger.Log(logger.ERROR, "Incorrect")
+		responseWriter.WriteHeader(400)
 		return
 	}
 
@@ -41,6 +43,7 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 
 	if len(projectName) == 0 {
 		server.logger.Log(logger.ERROR, "Incorrect")
+		responseWriter.WriteHeader(400)
 		return
 	}
 
@@ -48,20 +51,22 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 	//if err != nil {}
 
 	transformewIssues := server.transformer.TrasformData(issues)
-
 	server.databasePusher.PushIssue(transformewIssues)
 }
 
 func (server *ApiServer) project(responseWriter http.ResponseWriter, request *http.Request) {
+	fmt.Print("project work")
 	if request.Method != "GET" {
 		server.logger.Log(logger.ERROR, "Incorrect")
 		return
 	}
-
 	limit, page, search := getProjectParametersFromRequest(request)
+	//responseWriter.Header().Set("Content-Type", "application/json")
+	server.logger.Log(logger.INFO, "RETURN PROJECTS")
 	projets /*, err*/ := server.jiraConnector.GetProjects(limit, page, search)
 	//if err != nil {}
 	response, _ := json.Marshal(projets)
+	fmt.Printf(string(response))
 	responseWriter.Write(response)
 }
 
@@ -88,13 +93,23 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
 	return defaultLimit, defaultPage, defaultSearch
 }
 
-func (server *ApiServer) StrartServer() {
+func (server *ApiServer) StartServer() {
 	server.logger.Log(logger.INFO, "Server start server...")
+
 	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
 	http.HandleFunc("/api/v1/connector/projects", server.project)
-	err := http.ListenAndServe(server.configReader.GetHostServer()+
-		":"+strconv.Itoa(server.configReader.GetPortServer()), nil)
+	http.HandleFunc("/", server.hand)
+	fmt.Print(":8080", nil)
+
+	err := http.ListenAndServe("localhost:8003", nil)
+
 	if err != nil {
 		server.logger.Log(logger.ERROR, "Error while start a server")
 	}
+}
+
+func (server *ApiServer) hand(responseWriter http.ResponseWriter, request *http.Request) {
+	responseWriter.WriteHeader(http.StatusOK)
+	fmt.Print("hand work")
+	server.logger.Log(logger.INFO, "hand work!")
 }
