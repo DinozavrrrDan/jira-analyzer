@@ -6,7 +6,7 @@ minTimeSleep: 50
 
 hostDB: localhost
 portDB: 5432 
-NameDB: testdb
+nameDB: testdb
 passwordDB: pgpwd
 userDB: pguser
 
