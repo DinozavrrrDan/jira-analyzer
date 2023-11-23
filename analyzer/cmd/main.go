@@ -1,18 +1,16 @@
 package main
 
 import (
-	"Jira-analyzer/jiraConnector/apiServer"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
 )
 
 func main() {
-	apiServer := apiServer.CreateNewApiServer()
-	apiServer.StrartServer()
 
-	connectorTarget, err := url.Parse(fmt.Sprintf("http://%s:%d", "localhost", 8000))
+	connectorTarget, err := url.Parse(fmt.Sprintf("http://localhost:8000"))
 	if err != nil {
 		fmt.Printf("Error parsing target URL: %v\n", err)
 	}
@@ -25,4 +23,7 @@ func main() {
 		proxy.ServeHTTP(w, r)
 	})
 
+	req, err := http.NewRequest("GET", "http://localhost:8000"+"/api/v1"+"/connector/"+"project", nil)
+	resp := httptest.NewRecorder()
+	gatewayMux.ServeHTTP(resp, req)
 }

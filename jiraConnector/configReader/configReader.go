@@ -23,13 +23,13 @@ import (
 	o Начальное время ожидания для повторной отправки запроса в Jira
 */
 
-type ConfigRaeder struct {
+type ConfigReader struct {
 	viperConfigReader *viper.Viper
 	viperLogger       *logger.JiraLogger
 }
 
-func CreateNewConfigReader() *ConfigRaeder {
-	configReader := ConfigRaeder{}
+func CreateNewConfigReader() *ConfigReader {
+	configReader := ConfigReader{}
 	configReader.viperConfigReader = viper.New()
 	configReader.viperConfigReader.SetConfigName("config") //придумать имя конфига
 	configReader.viperConfigReader.SetConfigType("yaml")
@@ -41,54 +41,54 @@ func CreateNewConfigReader() *ConfigRaeder {
 	return &configReader
 }
 
-func (configReader *ConfigRaeder) GetJiraUrl() string {
+func (configReader *ConfigReader) GetJiraUrl() string {
 	return configReader.viperConfigReader.GetString("jiraUrl")
 }
 
-func (configReader *ConfigRaeder) GetHostDB() string {
+func (configReader *ConfigReader) GetHostDB() string {
 	return configReader.viperConfigReader.GetString("hostDB")
 }
 
-func (configReader *ConfigRaeder) GetDatabaseName() string {
+func (configReader *ConfigReader) GetDatabaseName() string {
 	return configReader.viperConfigReader.GetString("databaseName")
 }
 
-func (configReader *ConfigRaeder) GetPasswordDB() string {
+func (configReader *ConfigReader) GetPasswordDB() string {
 	return configReader.viperConfigReader.GetString("passwordDB")
 }
 
-func (configReader *ConfigRaeder) GetUserDb() string {
+func (configReader *ConfigReader) GetUserDb() string {
 	return configReader.viperConfigReader.GetString("userDb")
 }
 
-func (configReader *ConfigRaeder) GetPortDB() int {
+func (configReader *ConfigReader) GetPortDB() int {
 	return configReader.viperConfigReader.GetInt("portDB")
 }
 
-func (configReader *ConfigRaeder) GetThreadCount() int {
+func (configReader *ConfigReader) GetThreadCount() int {
 	return configReader.viperConfigReader.GetInt("threadCount")
 }
 
-func (configReader *ConfigRaeder) GetIssusOnOneRequest() int {
+func (configReader *ConfigReader) GetIssusOnOneRequest() int {
 	return configReader.viperConfigReader.GetInt("issueInOneRequest")
 }
 
-func (configReader *ConfigRaeder) GetMaxTimeSleep() int {
+func (configReader *ConfigReader) GetMaxTimeSleep() int {
 	return configReader.viperConfigReader.GetInt("maxTimeSleep")
 }
 
-func (configReader *ConfigRaeder) GetMinTimeSleep() int {
+func (configReader *ConfigReader) GetMinTimeSleep() int {
 	return configReader.viperConfigReader.GetInt("maxTimeSleep")
 }
 
-func (configReader *ConfigRaeder) GetHostServer() string {
+func (configReader *ConfigReader) GetHostServer() string {
 	return configReader.viperConfigReader.GetString("hostServer")
 }
 
-func (configReader *ConfigRaeder) GetPortServer() int {
+func (configReader *ConfigReader) GetPortServer() int {
 	return configReader.viperConfigReader.GetInt("portServer")
 }
 
-func (configReader *ConfigRaeder) GetApiPrefix() string {
+func (configReader *ConfigReader) GetApiPrefix() string {
 	return configReader.viperConfigReader.GetString("apiPref")
 }
