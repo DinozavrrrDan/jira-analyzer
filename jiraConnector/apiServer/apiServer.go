@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"strconv"
 
-	"Jira-analyzer/jiraConnector/configReader"
+	"Jira-analyzer/common/configReader"
+	"Jira-analyzer/common/logger"
 	"Jira-analyzer/jiraConnector/connector"
 	"Jira-analyzer/jiraConnector/dbPusher"
-	"Jira-analyzer/jiraConnector/logger"
 	"Jira-analyzer/jiraConnector/transformer"
 )
 
