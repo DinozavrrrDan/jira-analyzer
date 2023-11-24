@@ -1,7 +1,7 @@
 package configReader
 
 import (
-	"Jira-analyzer/jiraConnector/logger"
+	"Jira-analyzer/common/logger"
 
 	"github.com/spf13/viper"
 )
@@ -33,8 +33,8 @@ func CreateNewConfigReader() *ConfigReader {
 	configReader.viperConfigReader = viper.New()
 	configReader.viperConfigReader.SetConfigName("config")
 	configReader.viperConfigReader.SetConfigType("yaml")
-	configReader.viperConfigReader.AddConfigPath("././analyzer/configs")
-	configReader.viperConfigReader.AddConfigPath("../../analyzer/configs")
+	configReader.viperConfigReader.AddConfigPath("././configs")
+	configReader.viperConfigReader.AddConfigPath("../../configs")
 	viperLogger := logger.CreateNewLogger()
 	if err := configReader.viperConfigReader.ReadInConfig(); err != nil {
 		viperLogger.Log(logger.ERROR, "error in configReader"+err.Error())
