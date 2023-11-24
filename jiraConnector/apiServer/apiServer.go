@@ -47,8 +47,12 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 		return
 	}
 
-	issues /*, err*/ := server.jiraConnector.GetProjectIssues(projectName)
-	//if err != nil {}
+	issues, err := server.jiraConnector.GetProjectIssues(projectName)
+	if err != nil {
+		server.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(400)
+		return
+	}
 
 	transformewIssues := server.transformer.TrasformData(issues)
 	server.databasePusher.PushIssue(transformewIssues)
@@ -67,8 +71,12 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 
 	server.logger.Log(logger.INFO, "RETURN PROJECTS")
 
-	projets /*, err*/ := server.jiraConnector.GetProjects(limit, page, search)
-	//if err != nil {}
+	projets, err := server.jiraConnector.GetProjects(limit, page, search)
+	if err != nil {
+		server.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(400)
+		return
+	}
 	response, _ := json.Marshal(projets)
 	fmt.Printf(string(response))
 	responseWriter.Write(response)

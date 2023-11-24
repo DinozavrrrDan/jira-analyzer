@@ -36,7 +36,7 @@ func CreateNewJiraConnector() *Connector {
 который содержит массив проектов и общее количество страниц при
 данном параметре limit
 */
-func (connector *Connector) GetProjectIssues(projectName string) []models.Issue {
+func (connector *Connector) GetProjectIssues(projectName string) ([]models.Issue, error) {
 	isRequestGompleteSuccsesfully := false
 	timeUntilNewRequest := connector.configReader.GetMinTimeSleep()
 	var issues []models.Issue
@@ -47,8 +47,8 @@ func (connector *Connector) GetProjectIssues(projectName string) []models.Issue 
 
 		response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/search?jql=project=" + projectName + "&expand=changelog&startAt=0&maxResults=1")
 		if err != nil || response.StatusCode != http.StatusOK {
-			connector.logger.Log(logger.ERROR, "Error with get response from: ")
-			return []models.Issue{}
+			connector.logger.Log(logger.ERROR, "Error with get response from: "+projectName)
+			return []models.Issue{}, fmt.Errorf("Error with get response from: " + projectName)
 		}
 
 		body, err := io.ReadAll(response.Body)
@@ -56,13 +56,13 @@ func (connector *Connector) GetProjectIssues(projectName string) []models.Issue 
 		var issueResponce models.IssuesList
 		err = json.Unmarshal(body, &issueResponce)
 		if err != nil {
-			connector.logger.Log(logger.ERROR, " ")
-			return []models.Issue{}
+			connector.logger.Log(logger.ERROR, err.Error())
+			return []models.Issue{}, err
 		}
 
 		counterOfIssues := issueResponce.IssuesCount
 		if counterOfIssues == 0 {
-			return []models.Issue{}
+			return []models.Issue{}, fmt.Errorf("error: no issues")
 		}
 
 		issues, timeUntilNewRequest, isRequestGompleteSuccsesfully = connector.threadsFunc(counterOfIssues, httpClient, projectName, timeUntilNewRequest)
@@ -70,9 +70,9 @@ func (connector *Connector) GetProjectIssues(projectName string) []models.Issue 
 	}
 	if timeUntilNewRequest > connector.configReader.GetMaxTimeSleep() {
 		connector.logger.Log(logger.ERROR, "Error, too much time!")
-		return []models.Issue{}
+		return []models.Issue{}, fmt.Errorf("Error, too much time!")
 	}
-	return issues
+	return issues, nil
 }
 
 func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Client, projectName string, timeUntilNewRequest int) ([]models.Issue, int, bool) {
@@ -147,28 +147,28 @@ func (connector *Connector) increaseTimeUntilNewRequest(timeUntilNewRequest int,
 вернуть
 Параметр search - фильтр, который накладывается на название и ключ
 */
-func (connector *Connector) GetProjects(limit int, page int, search string) models.Projects {
+func (connector *Connector) GetProjects(limit int, page int, search string) (models.Projects, error) {
 	httpClient := &http.Client{}
 	fmt.Println(connector.jiraRepositoryUrl)
 	response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/project")
 	if err != nil || response.StatusCode != http.StatusOK {
 		connector.logger.Log(logger.ERROR, "Error with get response from about projects ")
-		return models.Projects{}
+		return models.Projects{}, err
 	}
 
 	body, err := io.ReadAll(response.Body)
 
 	if err != nil {
-		connector.logger.Log(logger.ERROR, " ")
-		return models.Projects{}
+		connector.logger.Log(logger.ERROR, err.Error())
+		return models.Projects{}, err
 	}
 
 	var jiraProjects []models.JiraProject
 	err = json.Unmarshal(body, &jiraProjects) //получаем информацию через сериализацию
 
 	if err != nil {
-		connector.logger.Log(logger.ERROR, " ")
-		return models.Projects{}
+		connector.logger.Log(logger.ERROR, err.Error())
+		return models.Projects{}, err
 
 	}
 	var projects []models.Project
@@ -201,7 +201,7 @@ func (connector *Connector) GetProjects(limit int, page int, search string) mode
 			CurrentPageNumber:  page,
 			TotalProjectsCount: counterOfProjects,
 		},
-	}
+	}, nil
 }
 
 func filterBySearch(projectName, search string) bool {
