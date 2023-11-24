@@ -5,6 +5,8 @@ import (
 	"Jira-analyzer/jiraConnector/logger"
 	"Jira-analyzer/jiraConnector/models"
 	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 
 	"io"
@@ -147,6 +149,7 @@ func (connector *Connector) increaseTimeUntilNewRequest(timeUntilNewRequest int,
 */
 func (connector *Connector) GetProjects(limit int, page int, search string) models.Projects {
 	httpClient := &http.Client{}
+	fmt.Println(connector.jiraRepositoryUrl)
 	response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/project")
 	if err != nil || response.StatusCode != http.StatusOK {
 		connector.logger.Log(logger.ERROR, "Error with get response from about projects ")
@@ -156,7 +159,7 @@ func (connector *Connector) GetProjects(limit int, page int, search string) mode
 	body, err := io.ReadAll(response.Body)
 
 	if err != nil {
-		connector.logger.Log(logger.ERROR, err.Error())
+		connector.logger.Log(logger.ERROR, " ")
 		return models.Projects{}
 	}
 
@@ -164,7 +167,7 @@ func (connector *Connector) GetProjects(limit int, page int, search string) mode
 	err = json.Unmarshal(body, &jiraProjects) //получаем информацию через сериализацию
 
 	if err != nil {
-		connector.logger.Log(logger.ERROR, err.Error())
+		connector.logger.Log(logger.ERROR, " ")
 		return models.Projects{}
 
 	}
@@ -175,12 +178,14 @@ func (connector *Connector) GetProjects(limit int, page int, search string) mode
 	//Получение информации о определенном колчичестве проектов
 	for _, element := range jiraProjects {
 		//Понять зачем search
-		counterOfProjects++
-		projects = append(projects, models.Project{
-			Name: element.Name,
-			Link: element.Link,
-			Key:  element.Key,
-		})
+		if filterBySearch(element.Name, search) {
+			counterOfProjects++
+			projects = append(projects, models.Project{
+				Name: element.Name,
+				Link: element.Link,
+				Key:  element.Key,
+			})
+		}
 	}
 
 	//обрезка проектов по странице
@@ -197,4 +202,8 @@ func (connector *Connector) GetProjects(limit int, page int, search string) mode
 			TotalProjectsCount: counterOfProjects,
 		},
 	}
+}
+
+func filterBySearch(projectName, search string) bool {
+	return strings.Contains(strings.ToLower(projectName), strings.ToLower(search))
 }
