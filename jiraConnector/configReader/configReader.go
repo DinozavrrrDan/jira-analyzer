@@ -34,6 +34,7 @@ func CreateNewConfigReader() *ConfigReader {
 	configReader.viperConfigReader.SetConfigName("config")
 	configReader.viperConfigReader.SetConfigType("yaml")
 	configReader.viperConfigReader.AddConfigPath("././analyzer/configs")
+	configReader.viperConfigReader.AddConfigPath("../../analyzer/configs")
 	viperLogger := logger.CreateNewLogger()
 	if err := configReader.viperConfigReader.ReadInConfig(); err != nil {
 		viperLogger.Log(logger.ERROR, "error in configReader"+err.Error())
