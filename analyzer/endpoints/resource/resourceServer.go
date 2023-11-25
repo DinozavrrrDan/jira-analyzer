@@ -14,13 +14,13 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type ResourceServer struct {
+type ResourceHandler struct {
 	configReader *configReader.ConfigReader
 	logger       *logger.JiraLogger
 	database     *sql.DB
 }
 
-func CreateNewResourceServer() *ResourceServer {
+func CreateNewResourceHandler() *ResourceHandler {
 	newReader := configReader.CreateNewConfigReader()
 	sqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		newReader.GetHostDB(),
@@ -33,33 +33,33 @@ func CreateNewResourceServer() *ResourceServer {
 	if err != nil {
 		panic(err)
 	}
-	return &ResourceServer{
+	return &ResourceHandler{
 		configReader: newReader,
 		logger:       logger.CreateNewLogger(),
 		database:     newDatabase,
 	}
 }
 
-func (resourceServer *ResourceServer) getIssue(responseWriter http.ResponseWriter, request *http.Request) {
+func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	issue, err := GetIssueInfoByID(id)
+	issue, err := resourceHandler.GetIssueInfo(id)
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	project, err := GetProjectInfoByID(issue.ProjectID)
+	project, err := resourceHandler.GetProjectInfo(issue.Project.Id)
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(400)
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -76,12 +76,12 @@ func (resourceServer *ResourceServer) getIssue(responseWriter http.ResponseWrite
 	}
 	response, err := json.MarshalIndent(issueResponce, "", "\t")
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(400)
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	responseWriter.WriteHeader(200)
-	resourceServer.logger.Log(logger.INFO, "HandleGetIssue successfully")
+	responseWriter.WriteHeader(http.StatusOK)
+	resourceHandler.logger.Log(logger.INFO, "HandleGetIssue successfully")
 	_, err = responseWriter.Write(response)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -90,19 +90,19 @@ func (resourceServer *ResourceServer) getIssue(responseWriter http.ResponseWrite
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
-func (resourceServer *ResourceServer) getHistory(responseWriter http.ResponseWriter, request *http.Request) {
+func (resourceHandler *ResourceHandler) getHistory(responseWriter http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
-		http.Error(responseWriter, err.Error(), http.StatusBadRequest)
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	history, err := GetAllHistoryInfoByIssueID(id)
+	history, err := resourceHandler.GetHistoryInfo(id)
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(400)
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -119,11 +119,11 @@ func (resourceServer *ResourceServer) getHistory(responseWriter http.ResponseWri
 	}
 	response, err := json.MarshalIndent(historyResponce, "", "\t")
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(400)
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	responseWriter.WriteHeader(200)
+	responseWriter.WriteHeader(http.StatusOK)
 	_, err = responseWriter.Write(response)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -132,19 +132,19 @@ func (resourceServer *ResourceServer) getHistory(responseWriter http.ResponseWri
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
-func (resourceServer *ResourceServer) getProject(responseWriter http.ResponseWriter, request *http.Request) {
+func (resourceHandler *ResourceHandler) getProject(responseWriter http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	project, err := GetProjectInfoByID(id)
+	project, err := resourceHandler.GetProjectInfo(id)
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(400)
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -161,11 +161,11 @@ func (resourceServer *ResourceServer) getProject(responseWriter http.ResponseWri
 	}
 	response, err := json.MarshalIndent(projectResponce, "", "\t")
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(400)
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	responseWriter.WriteHeader(200)
+	responseWriter.WriteHeader(http.StatusOK)
 	_, err = responseWriter.Write(response)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -174,11 +174,11 @@ func (resourceServer *ResourceServer) getProject(responseWriter http.ResponseWri
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
-func (resourceServer *ResourceServer) postIssue(responseWriter http.ResponseWriter, request *http.Request) {
+func (resourceHandler *ResourceHandler) postIssue(responseWriter http.ResponseWriter, request *http.Request) {
 	body, err := io.ReadAll(request.Body)
 
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -187,7 +187,7 @@ func (resourceServer *ResourceServer) postIssue(responseWriter http.ResponseWrit
 	err = json.Unmarshal(body, &requestDataIssue)
 
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -215,7 +215,7 @@ func (resourceServer *ResourceServer) postIssue(responseWriter http.ResponseWrit
 
 	response, err := json.MarshalIndent(issuesResponce, "", "\t")
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -227,11 +227,11 @@ func (resourceServer *ResourceServer) postIssue(responseWriter http.ResponseWrit
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
-func (resourceServer *ResourceServer) postHistory(responseWriter http.ResponseWriter, request *http.Request) {
+func (resourceHandler *ResourceHandler) postHistory(responseWriter http.ResponseWriter, request *http.Request) {
 	body, err := io.ReadAll(request.Body)
 
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -240,7 +240,7 @@ func (resourceServer *ResourceServer) postHistory(responseWriter http.ResponseWr
 	err = json.Unmarshal(body, &requestDataIssue)
 
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -267,22 +267,23 @@ func (resourceServer *ResourceServer) postHistory(responseWriter http.ResponseWr
 
 	response, err := json.MarshalIndent(historyResponce, "", "\t")
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	_, err = responseWriter.Write(response)
 	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
-func (resourceServer *ResourceServer) postProject(responseWriter http.ResponseWriter, request *http.Request) {
+func (resourceHandler *ResourceHandler) postProject(responseWriter http.ResponseWriter, request *http.Request) {
 	body, err := io.ReadAll(request.Body)
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -291,7 +292,7 @@ func (resourceServer *ResourceServer) postProject(responseWriter http.ResponseWr
 	err = json.Unmarshal(body, &requestDataIssue)
 
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -317,7 +318,7 @@ func (resourceServer *ResourceServer) postProject(responseWriter http.ResponseWr
 
 	response, err := json.MarshalIndent(projectResponce, "", "\t")
 	if err != nil {
-		resourceServer.logger.Log(logger.ERROR, err.Error())
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -329,7 +330,7 @@ func (resourceServer *ResourceServer) postProject(responseWriter http.ResponseWr
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
-func (server *ResourceServer) StartServer() {
+func (server *ResourceHandler) StartServer() {
 	server.logger.Log(logger.INFO, "Server start server...")
 
 	router := mux.NewRouter()
@@ -343,7 +344,7 @@ func (server *ResourceServer) StartServer() {
 
 }
 
-func (server *ResourceServer) handlers(router *mux.Router) {
+func (server *ResourceHandler) handlers(router *mux.Router) {
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
 		"issues/{id:[0-9]+}", server.getIssue).Methods("GET")
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
