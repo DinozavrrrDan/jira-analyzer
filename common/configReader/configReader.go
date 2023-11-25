@@ -1,7 +1,7 @@
 package configReader
 
 import (
-	"Jira-analyzer/jiraConnector/logger"
+	"Jira-analyzer/common/logger"
 
 	"github.com/spf13/viper"
 )
@@ -33,8 +33,8 @@ func CreateNewConfigReader() *ConfigReader {
 	configReader.viperConfigReader = viper.New()
 	configReader.viperConfigReader.SetConfigName("config")
 	configReader.viperConfigReader.SetConfigType("yaml")
-	configReader.viperConfigReader.AddConfigPath("././analyzer/configs")
-	configReader.viperConfigReader.AddConfigPath("../../analyzer/configs")
+	configReader.viperConfigReader.AddConfigPath("././configs")
+	configReader.viperConfigReader.AddConfigPath("../../configs")
 	viperLogger := logger.CreateNewLogger()
 	if err := configReader.viperConfigReader.ReadInConfig(); err != nil {
 		viperLogger.Log(logger.ERROR, "error in configReader"+err.Error())
@@ -92,4 +92,16 @@ func (configReader *ConfigReader) GetPortServer() int {
 
 func (configReader *ConfigReader) GetApiPrefix() string {
 	return configReader.viperConfigReader.GetString("apiPref")
+}
+
+func (configReader *ConfigReader) GetResourcePrefix() string {
+	return configReader.viperConfigReader.GetString("resourcePref")
+}
+
+func (configReader *ConfigReader) GetResourceHost() string {
+	return configReader.viperConfigReader.GetString("resourceHost")
+}
+
+func (configReader *ConfigReader) GetResourcePort() string {
+	return configReader.viperConfigReader.GetString("resourcePort")
 }

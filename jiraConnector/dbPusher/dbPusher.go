@@ -9,8 +9,8 @@ database/sql
 */
 
 import (
-	"Jira-analyzer/jiraConnector/configReader"
-	"Jira-analyzer/jiraConnector/logger"
+	"Jira-analyzer/common/configReader"
+	"Jira-analyzer/common/logger"
 	"Jira-analyzer/jiraConnector/models"
 	"database/sql"
 	"fmt"
