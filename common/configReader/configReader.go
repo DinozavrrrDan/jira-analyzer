@@ -105,3 +105,11 @@ func (configReader *ConfigReader) GetResourceHost() string {
 func (configReader *ConfigReader) GetResourcePort() string {
 	return configReader.viperConfigReader.GetString("resourcePort")
 }
+
+func (configReader *ConfigReader) GetConnectorHost() string {
+	return configReader.viperConfigReader.GetString("connectorHost")
+}
+
+func (configReader *ConfigReader) GetConnectorPort() string {
+	return configReader.viperConfigReader.GetString("connectorPort")
+}
