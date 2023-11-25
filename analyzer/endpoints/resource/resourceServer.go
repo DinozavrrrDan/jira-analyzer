@@ -1,6 +1,7 @@
 package endpoints
 
 import (
+	"Jira-analyzer/analyzer/models"
 	"Jira-analyzer/common/configReader"
 	"Jira-analyzer/common/logger"
 	"database/sql"
