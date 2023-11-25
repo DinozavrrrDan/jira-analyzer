@@ -26,12 +26,10 @@ type ResponseStrucrt struct {
 }
 
 type IssueInfo struct {
-	IssueID  int `json:"id"`
-	Projects struct {
-		ProjectID int    `json:"projectID"`
-		Key       string `json:"key"`
-		Name      string `json:"name"`
-		Url       string `json:"url"`
+	Id      int `json:"id"`
+	Project struct {
+		Id    int    `json:"projectId"`
+		Title string `json:"title"`
 	} `json:"project"`
 	Key         string    `json:"key"`
 	CreatedTime time.Time `json:"createdTime"`
@@ -42,20 +40,20 @@ type IssueInfo struct {
 	Type        string    `json:"type"`
 	Priority    string    `json:"priority"`
 	Status      bool      `json:"status"`
-	Author      string    `json:"creator"`
+	Author      string    `json:"author"`
 	Assignee    string    `json:"assignee"`
 	TimeSpent   int       `json:"timeSpent"`
 }
 
 type HistoryInfo struct {
-	IssueID    int       `json:"issueID"`
-	AuthorID   int       `json:"authorID"`
+	IssueId    int       `json:"issueId"`
+	AuthorId   int       `json:"authorId"`
 	ChangeTime time.Time `json:"changeTime"`
 	FromStatus string    `json:"fromStatus"`
 	ToStatus   string    `json:"toStatus"`
 }
 
 type ProjectInfo struct {
-	ProjectID int    `json:"projectID"`
-	Title     string `json:"title"`
+	Id    int    `json:"projectId"`
+	Title string `json:"title"`
 }
