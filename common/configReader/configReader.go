@@ -93,3 +93,15 @@ func (configReader *ConfigReader) GetPortServer() int {
 func (configReader *ConfigReader) GetApiPrefix() string {
 	return configReader.viperConfigReader.GetString("apiPref")
 }
+
+func (configReader *ConfigReader) GetResourcePrefix() string {
+	return configReader.viperConfigReader.GetString("resourcePref")
+}
+
+func (configReader *ConfigReader) GetResourceHost() string {
+	return configReader.viperConfigReader.GetString("resourceHost")
+}
+
+func (configReader *ConfigReader) GetResourcePort() string {
+	return configReader.viperConfigReader.GetString("resourcePort")
+}
