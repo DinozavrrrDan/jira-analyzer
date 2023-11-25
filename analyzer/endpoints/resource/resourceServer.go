@@ -65,34 +65,61 @@ func (resourceServer *ResourceServer) getIssue(responseWriter http.ResponseWrite
 
 	var issueResponce = models.ResponseStrucrt{
 		Links: models.ListOfReferens{
-			Issues: models.Link{Href: ""}},
+			Issues:    models.Link{Href: "/api/v1/issues"},
+			Projects:  models.Link{Href: "/api/v1/projects"},
+			Histories: models.Link{Href: "/api/v1/histories"},
+			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", id)},
+		},
 		Message: "",
 		Name:    "",
 		Status:  true,
 	}
-
+	response, err := json.MarshalIndent(issueResponce, "", "\t")
+	if err != nil {
+		resourceServer.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(400)
+		return
+	}
+	responseWriter.WriteHeader(200)
 	resourceServer.logger.Log(logger.INFO, "HandleGetIssue successfully")
-	rw.WriteHeader(http.StatusOK)
+	_, err = responseWriter.Write(response)
 }
 
-func (resourceServer *ResourceServer) getHistory(rw http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+func (resourceServer *ResourceServer) getHistory(responseWriter http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
 		resourceServer.logger.Log(logger.ERROR, err.Error())
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		http.Error(responseWriter, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	history, err := GetAllHistoryInfoByIssueID(id)
 	if err != nil {
 		resourceServer.logger.Log(logger.ERROR, err.Error())
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		responseWriter.WriteHeader(400)
 		return
 	}
 
-	resourceServer.logger.Log(logger.INFO, "HandleGetHistory successfully")
-	rw.WriteHeader(http.StatusOK)
+	var historyResponce = models.ResponseStrucrt{
+		Links: models.ListOfReferens{
+			Issues:    models.Link{Href: "/api/v1/issues"},
+			Projects:  models.Link{Href: "/api/v1/projects"},
+			Histories: models.Link{Href: "/api/v1/histories"},
+			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", id)},
+		},
+		Message: "",
+		Name:    "",
+		Status:  true,
+	}
+	response, err := json.MarshalIndent(historyResponce, "", "\t")
+	if err != nil {
+		resourceServer.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(400)
+		return
+	}
+	responseWriter.WriteHeader(200)
+	_, err = responseWriter.Write(response)
 }
 
 func (resourceServer *ResourceServer) getProject(rw http.ResponseWriter, r *http.Request) {
