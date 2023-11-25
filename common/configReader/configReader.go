@@ -113,3 +113,15 @@ func (configReader *ConfigReader) GetConnectorHost() string {
 func (configReader *ConfigReader) GetConnectorPort() string {
 	return configReader.viperConfigReader.GetString("connectorPort")
 }
+
+func (configReader *ConfigReader) GetAnalyticPref() string {
+	return configReader.viperConfigReader.GetString("analyticPref")
+}
+
+func (configReader *ConfigReader) GetAnalyticHost() string {
+	return configReader.viperConfigReader.GetString("analyticHost")
+}
+
+func (configReader *ConfigReader) GetAnalyticPort() string {
+	return configReader.viperConfigReader.GetString("analyticPort")
+}
