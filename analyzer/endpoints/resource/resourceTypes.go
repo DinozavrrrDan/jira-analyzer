@@ -1,4 +1,4 @@
-package models
+package endpoints
 
 import "time"
 
@@ -44,7 +44,7 @@ type IssueInfo struct {
 	Status      bool      `json:"status"`
 	Author      string    `json:"creator"`
 	Assignee    string    `json:"assignee"`
-	Timespent   int       `json:"timespent"`
+	TimeSpent   int       `json:"timeSpent"`
 }
 
 type HistoryInfo struct {
