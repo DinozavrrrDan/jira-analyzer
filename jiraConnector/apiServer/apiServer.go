@@ -107,13 +107,15 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
 
 func (server *ApiServer) StartServer() {
 	server.logger.Log(logger.INFO, "Server start server...")
-
-	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
-	http.HandleFunc("/api/v1/connector/projects", server.project)
-
-	err := http.ListenAndServe("localhost:8003", nil)
+	server.handlers()
+	err := http.ListenAndServe(server.configReader.GetConnectorHost()+":"+server.configReader.GetConnectorPort(), nil)
 
 	if err != nil {
 		server.logger.Log(logger.ERROR, "Error while start a server")
 	}
+}
+
+func (server *ApiServer) handlers() {
+	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
+	http.HandleFunc("/api/v1/connector/projects", server.project)
 }
