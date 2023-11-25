@@ -1,9 +1,11 @@
-package resource
+package endpoints
 
 import (
 	"Jira-analyzer/jiraConnector/configReader"
 	"Jira-analyzer/jiraConnector/logger"
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -14,12 +16,26 @@ import (
 type ResourseHandler struct {
 	configReader *configReader.ConfigReader
 	logger       *logger.JiraLogger
+	database     *sql.DB
 }
 
 func CreateNewResourseHandler() *ResourseHandler {
+	newReader := configReader.CreateNewConfigReader()
+	sqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		newReader.GetHostDB(),
+		newReader.GetPortDB(),
+		newReader.GetUserDb(),
+		newReader.GetPasswordDB(),
+		newReader.GetDatabaseName())
+	newDatabase, err := sql.Open("postgres", sqlInfo)
+
+	if err != nil {
+		panic(err)
+	}
 	return &ResourseHandler{
-		configReader: configReader.CreateNewConfigReader(),
+		configReader: newReader,
 		logger:       logger.CreateNewLogger(),
+		database:     newDatabase,
 	}
 }
 
