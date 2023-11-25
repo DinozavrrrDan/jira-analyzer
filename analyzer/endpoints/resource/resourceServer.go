@@ -40,27 +40,35 @@ func CreateNewResourceServer() *ResourceServer {
 	}
 }
 
-func (resourceServer *ResourceServer) getIssue(rw http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+func (resourceServer *ResourceServer) getIssue(responseWriter http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
 		resourceServer.logger.Log(logger.ERROR, err.Error())
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	issue, err := GetIssueInfoByID(id)
 	if err != nil {
 		resourceServer.logger.Log(logger.ERROR, err.Error())
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		responseWriter.WriteHeader(400)
 		return
 	}
 
 	project, err := GetProjectInfoByID(issue.ProjectID)
 	if err != nil {
 		resourceServer.logger.Log(logger.ERROR, err.Error())
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		responseWriter.WriteHeader(400)
 		return
+	}
+
+	var issueResponce = models.ResponseStrucrt{
+		Links: models.ListOfReferens{
+			Issues: models.Link{Href: ""}},
+		Message: "",
+		Name:    "",
+		Status:  true,
 	}
 
 	resourceServer.logger.Log(logger.INFO, "HandleGetIssue successfully")
