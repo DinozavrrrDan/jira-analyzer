@@ -83,6 +83,11 @@ func (resourceServer *ResourceServer) getIssue(responseWriter http.ResponseWrite
 	responseWriter.WriteHeader(200)
 	resourceServer.logger.Log(logger.INFO, "HandleGetIssue successfully")
 	_, err = responseWriter.Write(response)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	responseWriter.WriteHeader(http.StatusOK)
 }
 
 func (resourceServer *ResourceServer) getHistory(responseWriter http.ResponseWriter, request *http.Request) {
@@ -120,6 +125,11 @@ func (resourceServer *ResourceServer) getHistory(responseWriter http.ResponseWri
 	}
 	responseWriter.WriteHeader(200)
 	_, err = responseWriter.Write(response)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	responseWriter.WriteHeader(http.StatusOK)
 }
 
 func (resourceServer *ResourceServer) getProject(responseWriter http.ResponseWriter, request *http.Request) {
@@ -157,6 +167,11 @@ func (resourceServer *ResourceServer) getProject(responseWriter http.ResponseWri
 	}
 	responseWriter.WriteHeader(200)
 	_, err = responseWriter.Write(response)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	responseWriter.WriteHeader(http.StatusOK)
 }
 
 func (resourceServer *ResourceServer) postIssue(responseWriter http.ResponseWriter, request *http.Request) {
@@ -205,6 +220,11 @@ func (resourceServer *ResourceServer) postIssue(responseWriter http.ResponseWrit
 		return
 	}
 	_, err = responseWriter.Write(response)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	responseWriter.WriteHeader(http.StatusOK)
 }
 
 func (resourceServer *ResourceServer) postHistory(responseWriter http.ResponseWriter, request *http.Request) {
@@ -252,6 +272,11 @@ func (resourceServer *ResourceServer) postHistory(responseWriter http.ResponseWr
 		return
 	}
 	_, err = responseWriter.Write(response)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	responseWriter.WriteHeader(http.StatusOK)
 }
 
 func (resourceServer *ResourceServer) postProject(responseWriter http.ResponseWriter, request *http.Request) {
@@ -297,6 +322,11 @@ func (resourceServer *ResourceServer) postProject(responseWriter http.ResponseWr
 		return
 	}
 	_, err = responseWriter.Write(response)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	responseWriter.WriteHeader(http.StatusOK)
 }
 
 func (server *ResourceServer) StartServer() {
@@ -310,6 +340,7 @@ func (server *ResourceServer) StartServer() {
 	if err != nil {
 		server.logger.Log(logger.ERROR, "Error while start a server")
 	}
+
 }
 
 func (server *ResourceServer) handlers(router *mux.Router) {
