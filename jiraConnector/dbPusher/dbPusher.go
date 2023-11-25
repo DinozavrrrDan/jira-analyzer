@@ -60,10 +60,10 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 	}
 }
 
-func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timespent int) {
+func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timeSpent int) {
 	stmt, _ :=
 		databasePusher.database.Prepare("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-	_, err := stmt.Exec(projectId, authorId, assigneeId, key, summary, description, Type, priority, status, createdTime, closedTime, updatedTime, timespent)
+	_, err := stmt.Exec(projectId, authorId, assigneeId, key, summary, description, Type, priority, status, createdTime, closedTime, updatedTime, timeSpent)
 	if err != nil {
 		databasePusher.logger.Log(logger.ERROR, err.Error())
 	}
