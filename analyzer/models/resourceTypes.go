@@ -3,18 +3,14 @@ package models
 import "time"
 
 type ListOfReferens struct {
-	Issues struct {
-		Href string `json:"href"`
-	} `json:"issues"`
-	Projects struct {
-		Href string `json:"href"`
-	} `json:"projects"`
-	Histories struct {
-		Href string `json:"href"`
-	} `json:"histories"`
-	Self struct {
-		Href string `json:"href"`
-	} `json:"self"`
+	Issues    Link `json:"issues"`
+	Projects  Link `json:"projects"`
+	Histories Link `json:"histories"`
+	Self      Link `json:"self"`
+}
+
+type Link struct {
+	Href string `json:"href"`
 }
 
 type ResponseStrucrt struct {
