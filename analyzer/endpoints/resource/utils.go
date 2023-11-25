@@ -14,14 +14,14 @@ func (resourseHandler *ResourseHandler) GetIssueInfo(id int) (IssueInfo, error) 
 		return issueInfo, err
 	}
 
-	//уведомить об успехе еще можно
+	resourseHandler.logger.Log(logger.INFO, "GetIssueInfo successfully")
 	return issueInfo, nil
 }
 
 func (resourseHandler *ResourseHandler) GetHistoryInfo(id int) (HistoryInfo, error) {
 	historyInfo := HistoryInfo{}
 
-	//уведомить об успехе еще можно
+	resourseHandler.logger.Log(logger.INFO, "GetHistoryInfo successfully")
 	return historyInfo, nil
 }
 
@@ -33,6 +33,6 @@ func (resourseHandler *ResourseHandler) GetProjectInfo(id int) (ProjectInfo, err
 		return projectInfo, err
 	}
 
-	resourseHandler.logger.Log(logger.INFO, "GetProjectInfoByID successfully")
+	resourseHandler.logger.Log(logger.INFO, "GetProjectInfo successfully")
 	return projectInfo, nil
 }
