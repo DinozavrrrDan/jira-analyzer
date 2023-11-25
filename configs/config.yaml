@@ -14,3 +14,7 @@ hostServer: localhost
 portServer: 8080
 
 apiPref: /api/v1
+
+resourceHost: localhost
+resourcePort: 8001
+resourcePref: /resource 
