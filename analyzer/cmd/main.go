@@ -3,14 +3,13 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"net/http/httptest"
 	"net/http/httputil"
 	"net/url"
 )
 
 func main() {
 
-	connectorTarget, err := url.Parse(fmt.Sprintf("http://localhost:8000"))
+	connectorTarget, err := url.Parse(fmt.Sprintf("http://localhost:8003"))
 	if err != nil {
 		fmt.Printf("Error parsing target URL: %v\n", err)
 	}
@@ -23,7 +22,6 @@ func main() {
 		proxy.ServeHTTP(w, r)
 	})
 
-	req, err := http.NewRequest("GET", "http://localhost:8000"+"/api/v1"+"/connector/"+"project", nil)
-	resp := httptest.NewRecorder()
-	gatewayMux.ServeHTTP(resp, req)
+	err = http.ListenAndServe("localhost:8000", gatewayMux)
+
 }
