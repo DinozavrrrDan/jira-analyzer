@@ -58,7 +58,7 @@ func (analyticServer *AnalyticServer) getGraph(responseWriter http.ResponseWrite
 		//Функции с графиками
 	} else {
 		analyticServer.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(403)
+		responseWriter.WriteHeader(http.StatusForbidden)
 		return
 	}
 

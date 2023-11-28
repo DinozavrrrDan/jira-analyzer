@@ -7,25 +7,56 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func (resourseHandler *ResourceHandler) GetIssueInfo(id int) (models.IssueInfo, error) {
+func (resourceHandler *ResourceHandler) GetIssueInfo(id int) (models.IssueInfo, error) {
 	issueInfo := models.IssueInfo{}
 	var authorId, assigneeId int
 
-	if err := resourseHandler.database.QueryRow("id, projectId, authorId, assigneeId, key, summary, description, type, priority, createdTime, closedTime, updatedTime, timeSpent FROM issues where id = ?", id).Scan(&issueInfo.Id, &issueInfo.Project.Id, &authorId, &assigneeId, &issueInfo.Key, &issueInfo.Summary, &issueInfo.Description, &issueInfo.Type, &issueInfo.Priority, &issueInfo.Status, &issueInfo.CreatedTime, &issueInfo.ClosedTime, &issueInfo.UpdatedTime, &issueInfo.TimeSpent); err != nil {
+	if err := resourceHandler.database.QueryRow("id, projectId, authorId, assigneeId, key, summary, description, type, priority, createdTime, closedTime, updatedTime, timeSpent FROM issues where id = ?", id).Scan(&issueInfo.Id, &issueInfo.Project.Id, &authorId, &assigneeId, &issueInfo.Key, &issueInfo.Summary, &issueInfo.Description, &issueInfo.Type, &issueInfo.Priority, &issueInfo.Status, &issueInfo.CreatedTime, &issueInfo.ClosedTime, &issueInfo.UpdatedTime, &issueInfo.TimeSpent); err != nil {
 		return issueInfo, err
 	}
 
-	//еще достать автора и assignee
+	if err := resourceHandler.database.QueryRow("SELECT name FROM author where id = ?", authorId).Scan(&issueInfo.Author); err != nil {
+		return issueInfo, err
+	}
+	if err := resourceHandler.database.QueryRow("SELECT id FROM author where name = ?", assigneeId).Scan(&issueInfo.Assignee); err != nil {
+		return issueInfo, err
+	}
 
-	resourseHandler.logger.Log(logger.INFO, "GetIssueInfo successfully")
+	resourceHandler.logger.Log(logger.INFO, "GetIssueInfo successfully")
 	return issueInfo, nil
 }
 
-func (resourceHandler *ResourceHandler) GetHistoryInfo(id int) (models.HistoryInfo, error) {
-	historyInfo := models.HistoryInfo{}
+func (resourceHandler *ResourceHandler) GetHistoryInfo(id int) ([]models.HistoryInfo, error) {
+	historyInfos := []models.HistoryInfo{}
+
+	rows, err := resourceHandler.database.Query(
+		"SELECT "+
+			"authorId,"+
+			"changeTime"+
+			"fromStatus,"+
+			"toStatus "+
+			"FROM statusChanges "+
+			"WHERE issueId = ?", id,
+	)
+
+	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		return historyInfos, err
+	}
+
+	for rows.Next() {
+		historyInfo := models.HistoryInfo{}
+		err := rows.Scan(&historyInfo.AuthorId, &historyInfo.ChangeTime, &historyInfo.FromStatus, &historyInfo.ToStatus)
+
+		if err != nil {
+			resourceHandler.logger.Log(logger.ERROR, err.Error())
+			return historyInfos, err
+		}
+		historyInfos = append(historyInfos, historyInfo)
+	}
 
 	resourceHandler.logger.Log(logger.INFO, "GetHistoryInfo successfully")
-	return historyInfo, nil
+	return historyInfos, nil
 }
 
 func (resourceHandler *ResourceHandler) GetProjectInfo(id int) (models.ProjectInfo, error) {
@@ -52,15 +83,20 @@ func (resourceHandler *ResourceHandler) InsertProject(projectInfo models.Project
 	return projectId, nil
 }
 
-func (resourseHandler *ResourceHandler) InsertIssue(issueInfo models.IssueInfo) (int, error) {
+func (resourceHandler *ResourceHandler) InsertIssue(issueInfo models.IssueInfo) (int, error) {
 	var issueId, authorId, assigneeId int
 
-	//достать authorId и assigneeId из таблицы author
-
-	if err := resourseHandler.database.QueryRow("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", issueInfo.Project.Id, authorId, assigneeId, issueInfo.Key, issueInfo.Summary, issueInfo.Description, issueInfo.Type, issueInfo.Priority, issueInfo.Status, issueInfo.CreatedTime, issueInfo.ClosedTime, issueInfo.UpdatedTime, issueInfo.TimeSpent).Scan(&issueId); err != nil {
+	if err := resourceHandler.database.QueryRow("SELECT id FROM author where name = ?", issueInfo.Author).Scan(&authorId); err != nil {
+		return issueId, err
+	}
+	if err := resourceHandler.database.QueryRow("SELECT id FROM author where name = ?", issueInfo.Assignee).Scan(&assigneeId); err != nil {
 		return issueId, err
 	}
 
-	resourseHandler.logger.Log(logger.INFO, "InsertIssue successfully")
+	if err := resourceHandler.database.QueryRow("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", issueInfo.Project.Id, authorId, assigneeId, issueInfo.Key, issueInfo.Summary, issueInfo.Description, issueInfo.Type, issueInfo.Priority, issueInfo.Status, issueInfo.CreatedTime, issueInfo.ClosedTime, issueInfo.UpdatedTime, issueInfo.TimeSpent).Scan(&issueId); err != nil {
+		return issueId, err
+	}
+
+	resourceHandler.logger.Log(logger.INFO, "InsertIssue successfully")
 	return issueId, nil
 }
