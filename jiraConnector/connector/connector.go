@@ -147,20 +147,21 @@ func (connector *Connector) increaseTimeUntilNewRequest(timeUntilNewRequest int,
 вернуть
 Параметр search - фильтр, который накладывается на название и ключ
 */
-func (connector *Connector) GetProjects(limit int, page int, search string) (models.Projects, error) {
+func (connector *Connector) GetProjects(limit int, page int, search string) ([]models.Project, models.Page, error) {
 	httpClient := &http.Client{}
 	fmt.Println(connector.jiraRepositoryUrl)
 	response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/project")
 	if err != nil || response.StatusCode != http.StatusOK {
 		connector.logger.Log(logger.ERROR, "Error with get response from about projects ")
-		return models.Projects{}, err
+		return []models.Project{}, models.Page{}, err
 	}
 
 	body, err := io.ReadAll(response.Body)
 
 	if err != nil {
 		connector.logger.Log(logger.ERROR, err.Error())
-		return models.Projects{}, err
+		return []models.Project{}, models.Page{}, err
+
 	}
 
 	var jiraProjects []models.JiraProject
@@ -168,7 +169,7 @@ func (connector *Connector) GetProjects(limit int, page int, search string) (mod
 
 	if err != nil {
 		connector.logger.Log(logger.ERROR, err.Error())
-		return models.Projects{}, err
+		return []models.Project{}, models.Page{}, err
 
 	}
 	var projects []models.Project
@@ -181,9 +182,11 @@ func (connector *Connector) GetProjects(limit int, page int, search string) (mod
 		if filterBySearch(element.Name, search) {
 			counterOfProjects++
 			projects = append(projects, models.Project{
-				Name: element.Name,
-				Link: element.Link,
-				Key:  element.Key,
+				Existence: true,
+				Id:        0,
+				Name:      element.Name,
+				Link:      element.Link,
+				Key:       element.Key,
 			})
 		}
 	}
@@ -192,16 +195,18 @@ func (connector *Connector) GetProjects(limit int, page int, search string) (mod
 
 	startIndexOfProject := limit * (page - 1)
 	endIndexOfProject := limit * page
+	if endIndexOfProject >= len(projects) {
+		endIndexOfProject = len(projects)
+	}
+	fmt.Println(page)
 	//подумать над косяками
 
-	return models.Projects{
-		Projects: projects[startIndexOfProject:endIndexOfProject],
-		Page: models.Page{
-			TotalPageCount:     int(counterOfProjects / limit),
+	return projects[startIndexOfProject:endIndexOfProject],
+		models.Page{
 			CurrentPageNumber:  page,
+			TotalPageCount:     int(counterOfProjects / limit),
 			TotalProjectsCount: counterOfProjects,
-		},
-	}, nil
+		}, nil
 }
 
 func filterBySearch(projectName, search string) bool {
