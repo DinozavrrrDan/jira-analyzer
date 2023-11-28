@@ -26,11 +26,37 @@ func (resourceHandler *ResourceHandler) GetIssueInfo(id int) (models.IssueInfo, 
 	return issueInfo, nil
 }
 
-func (resourceHandler *ResourceHandler) GetHistoryInfo(id int) (models.HistoryInfo, error) {
-	historyInfo := models.HistoryInfo{}
+func (resourceHandler *ResourceHandler) GetHistoryInfo(id int) ([]models.HistoryInfo, error) {
+	historyInfos := []models.HistoryInfo{}
+
+	rows, err := resourceHandler.database.Query(
+		"SELECT "+
+			"authorId,"+
+			"changeTime"+
+			"fromStatus,"+
+			"toStatus "+
+			"FROM statusChanges "+
+			"WHERE issueId = ?", id,
+	)
+
+	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		return historyInfos, err
+	}
+
+	for rows.Next() {
+		historyInfo := models.HistoryInfo{}
+		err := rows.Scan(&historyInfo.AuthorId, &historyInfo.ChangeTime, &historyInfo.FromStatus, &historyInfo.ToStatus)
+
+		if err != nil {
+			resourceHandler.logger.Log(logger.ERROR, err.Error())
+			return historyInfos, err
+		}
+		historyInfos = append(historyInfos, historyInfo)
+	}
 
 	resourceHandler.logger.Log(logger.INFO, "GetHistoryInfo successfully")
-	return historyInfo, nil
+	return historyInfos, nil
 }
 
 func (resourceHandler *ResourceHandler) GetProjectInfo(id int) (models.ProjectInfo, error) {
