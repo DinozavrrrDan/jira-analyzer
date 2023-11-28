@@ -1,0 +1,81 @@
+<div class="body">
+  <h2 *ngIf="projects.length == 2" class="header">
+    <a href="http://{{webUrl}}/compare">
+      Сравнение
+    </a>
+    > {{ projects[0].toString() + " vs " + projects[1].toString()}}
+  </h2>
+  <h2 *ngIf="projects.length == 3" class="header">
+    <a href="http://{{webUrl}}/compare">
+      Сравнение
+    </a>
+    > {{ projects[0].toString() + " vs " + projects[1].toString() + " vs " + projects[2].toString()}}
+  </h2>
+  <div class="container">
+    <table class = "tbl" id="table1">
+      <thead>
+      <tr class="soft_stat_header" id="soft_stat_header">
+        <th>Сухая статистика</th>
+        <th *ngFor="let project of projects">
+          {{project.toString()}}
+        </th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr id="summary_task_count">
+        <td>Общее количество задач</td>
+        <td *ngFor="let stat of resultReq">
+          {{stat.allIssuesCount}}
+        </td>
+      </tr>
+      <tr id = "open_task_count">
+        <td>Количество открытых задач</td>
+        <td *ngFor="let stat of resultReq">
+          {{stat.openIssuesCount}}
+        </td>
+      </tr>
+      <tr id = "close_task_count">
+        <td>Количество закрытых задач</td>
+        <td *ngFor="let stat of resultReq">
+          {{stat.closeIssuesCount}}
+        </td>
+      </tr>
+      <tr id = "reopen_task_count">
+        <td>Количество переоткрытых задач</td>
+        <td *ngFor="let stat of resultReq">
+          {{stat.reopenedIssuesCount}}
+        </td>
+      </tr>
+      <tr id = "resolved_task_count">
+        <td>Количество разрешенных задач</td>
+        <td *ngFor="let stat of resultReq">
+          {{stat.resolvedIssuesCount}}
+        </td>
+      </tr>
+      <tr id = "progress_task_count">
+        <td>Количество задач со статусом "In progress"</td>
+        <td *ngFor="let stat of resultReq">
+          {{stat.progressIssuesCount}}
+        </td>
+      </tr>
+      <tr id = "average_task_time">
+        <td>Среднее время выполнения задачи(часы)</td>
+        <td *ngFor="let stat of resultReq">
+          {{stat.averageTime}}
+        </td>
+      </tr>
+      <tr id = "average_task_count">
+        <td>Среднее количество заведенных задач в день за последнюю неделю</td>
+        <td *ngFor="let stat of resultReq">
+          {{stat.averageIssuesCount}}
+        </td>
+      </tr>
+      </tbody>
+    </table>
+
+    <p id ="open-task-title">Гистограмма, отражающая время, которое задачи провели в открытом состоянии</p>
+    <div class="chart" id="open-task" [chart]="openTaskChart"></div>
+  </div>
+
+</div>
+

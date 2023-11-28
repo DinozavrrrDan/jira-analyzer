@@ -1,0 +1,18 @@
+<table class="tbl">
+  <tbody>
+  <tr>
+    <td class="tdname">{{project.Name}}</td>
+    <td>{{project.Link}}</td>
+    <td class="tdbtn">
+      <button class="btn"
+      [ngClass]="{
+        'btnAdd' : !adding,
+        'btnDelete' : adding
+       }"
+      (click)="addMyProject(project)">
+        {{ adding ? "Удалить" : "Добавить" }}
+      </button>
+    </td>
+  </tr>
+  </tbody>
+</table>
