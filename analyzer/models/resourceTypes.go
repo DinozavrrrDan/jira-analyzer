@@ -14,11 +14,18 @@ type Link struct {
 }
 
 type ResponseStrucrt struct {
-	Links ListOfReferens `json:"_links"`
-	//придумать как предавать info в случае разных запросов
-	Message string `json:"message"`
-	Name    string `json:"name"`
-	Status  bool   `json:"status"`
+	Links    ListOfReferens `json:"_links"`
+	Info     interface{}    `json:"data"`
+	Message  string         `json:"message"`
+	Name     string         `json:"name"`
+	PageInfo Page           `json:"pageInfo"`
+	Status   bool           `json:"status"`
+}
+
+type Page struct {
+	CurrentPageNumber  int `json:"currentPage"`
+	TotalPageCount     int `json:"pageCount"`
+	TotalProjectsCount int `json:"projectsCount"`
 }
 
 type IssueInfo struct {

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"Jira-analyzer/analyzer/models"
 	"Jira-analyzer/common/configReader"
 	"Jira-analyzer/common/logger"
 	"Jira-analyzer/jiraConnector/connector"
@@ -71,14 +72,30 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 
 	server.logger.Log(logger.INFO, "RETURN PROJECTS")
 
-	projets, err := server.jiraConnector.GetProjects(limit, page, search)
+	projets, pages, err := server.jiraConnector.GetProjects(limit, page, search)
 	if err != nil {
 		server.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(400)
 		return
 	}
-	response, _ := json.Marshal(projets)
-	fmt.Printf(string(response))
+	var issueResponce = models.ResponseStrucrt{
+		Links: models.ListOfReferens{
+			Issues:    models.Link{Href: "/api/v1/issues"},
+			Projects:  models.Link{Href: "/api/v1/projects"},
+			Histories: models.Link{Href: "/api/v1/histories"},
+			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", 1)},
+		},
+		Info:    projets,
+		Message: "Hello from connector",
+		Name:    "",
+		PageInfo: models.Page{
+			TotalPageCount:     pages.TotalPageCount,
+			CurrentPageNumber:  pages.CurrentPageNumber,
+			TotalProjectsCount: pages.TotalProjectsCount,
+		},
+		Status: true,
+	}
+	response, err := json.MarshalIndent(issueResponce, "", "\t")
 	responseWriter.Write(response)
 }
 
@@ -89,12 +106,13 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
 
 	limit := request.URL.Query().Get("limit")
 	if len(limit) != 0 {
+		fmt.Println("linit: " + limit + " !")
 		defaultLimit, _ = strconv.Atoi(limit) //нужно ли обрабатывать ошибки
 	}
 
 	page := request.URL.Query().Get("page")
 	if len(page) != 0 {
-		defaultLimit, _ = strconv.Atoi(page)
+		defaultPage, _ = strconv.Atoi(page)
 	}
 
 	search := request.URL.Query().Get("search")
