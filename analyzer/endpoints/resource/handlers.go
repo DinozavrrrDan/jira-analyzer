@@ -147,6 +147,7 @@ func (resourceHandler *ResourceHandler) getHistory(responseWriter http.ResponseW
 	_, err = responseWriter.Write(response)
 
 	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 
 		return
@@ -199,6 +200,7 @@ func (resourceHandler *ResourceHandler) getProject(responseWriter http.ResponseW
 	_, err = responseWriter.Write(response)
 
 	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 
 		return
@@ -217,8 +219,8 @@ func (resourceHandler *ResourceHandler) postIssue(responseWriter http.ResponseWr
 		return
 	}
 
-	var requestDataIssue models.IssueInfo
-	err = json.Unmarshal(body, &requestDataIssue)
+	var issueInfo models.IssueInfo
+	err = json.Unmarshal(body, &issueInfo)
 
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
@@ -227,8 +229,9 @@ func (resourceHandler *ResourceHandler) postIssue(responseWriter http.ResponseWr
 		return
 	}
 
-	id, err := resourceHandler.InsertIssue(requestDataIssue)
+	id, err := resourceHandler.InsertIssue(issueInfo)
 	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		//как-то напишем об ошибке
 		//statusCode = http.Status - подобрать верный статус
@@ -294,7 +297,6 @@ func (resourceHandler *ResourceHandler) postHistory(responseWriter http.Response
 		//как-то напишем об ошибке
 		//statusCode = http.Status - подобрать верный статус
 	} else {
-		resourceHandler.logger.Log(logger.INFO, err.Error())
 		responseWriter.WriteHeader(http.StatusOK)
 		//statusCode = http.Status - подобрать верный статус
 	}
@@ -390,19 +392,6 @@ func (resourceHandler *ResourceHandler) postProject(responseWriter http.Response
 	}
 
 	responseWriter.WriteHeader(http.StatusOK)
-}
-
-func (server *ResourceHandler) StartServer() {
-	server.logger.Log(logger.INFO, "Server start server...")
-
-	router := mux.NewRouter()
-
-	server.handlers(router)
-
-	err := http.ListenAndServe(server.configReader.GetResourceHost()+":"+server.configReader.GetResourceHost(), router)
-	if err != nil {
-		server.logger.Log(logger.ERROR, "Error while start a server")
-	}
 }
 
 func (server *ResourceHandler) handlers(router *mux.Router) {
