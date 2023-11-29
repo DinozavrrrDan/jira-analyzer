@@ -33,6 +33,7 @@ func CreateNewResourceHandler() *ResourceHandler {
 	if err != nil {
 		panic(err)
 	}
+
 	return &ResourceHandler{
 		configReader: newReader,
 		logger:       logger.CreateNewLogger(),
@@ -43,23 +44,27 @@ func CreateNewResourceHandler() *ResourceHandler {
 func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
+
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
-	issue, err := resourceHandler.GetIssueInfo(id)
+	//issue, err := resourceHandler.GetIssueInfo(id)
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
-	project, err := resourceHandler.GetProjectInfo(issue.Project.Id)
+	//project, err := resourceHandler.GetProjectInfo(issue.Project.Id)
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
@@ -74,35 +79,46 @@ func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWri
 		Name:    "",
 		Status:  true,
 	}
+
 	response, err := json.MarshalIndent(issueResponce, "", "\t")
+
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	responseWriter.WriteHeader(http.StatusOK)
 	resourceHandler.logger.Log(logger.INFO, "HandleGetIssue successfully")
+
 	_, err = responseWriter.Write(response)
+
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
 func (resourceHandler *ResourceHandler) getHistory(responseWriter http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
+
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
-	history, err := resourceHandler.GetHistoryInfo(id)
+	//history, err := resourceHandler.GetHistoryInfo(id)
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
@@ -117,34 +133,45 @@ func (resourceHandler *ResourceHandler) getHistory(responseWriter http.ResponseW
 		Name:    "",
 		Status:  true,
 	}
+
 	response, err := json.MarshalIndent(historyResponce, "", "\t")
+
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	responseWriter.WriteHeader(http.StatusOK)
 	_, err = responseWriter.Write(response)
+
 	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
 func (resourceHandler *ResourceHandler) getProject(responseWriter http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
+
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
-	project, err := resourceHandler.GetProjectInfo(id)
+	//project, err := resourceHandler.GetProjectInfo(id)
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
@@ -159,18 +186,26 @@ func (resourceHandler *ResourceHandler) getProject(responseWriter http.ResponseW
 		Name:    "",
 		Status:  true,
 	}
+
 	response, err := json.MarshalIndent(projectResponce, "", "\t")
+
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	responseWriter.WriteHeader(http.StatusOK)
 	_, err = responseWriter.Write(response)
+
 	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
@@ -180,26 +215,30 @@ func (resourceHandler *ResourceHandler) postIssue(responseWriter http.ResponseWr
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
-	var requestDataIssue models.IssueInfo
-	err = json.Unmarshal(body, &requestDataIssue)
+	var issueInfo models.IssueInfo
+	err = json.Unmarshal(body, &issueInfo)
 
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
-	var statusCode int
-	//id, err := PutIssueIntoDB функция которая будет помещать узел в БД БОРЯ
+
+	id, err := resourceHandler.InsertIssue(issueInfo)
 	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		//как-то напишем об ошибке
 		//statusCode = http.Status - подобрать верный статус
 	} else {
+		responseWriter.WriteHeader(http.StatusOK)
 		//statusCode = http.Status - подобрать верный статус
 	}
-	statusCode = statusCode + 1 // заглушка
 
 	var issuesResponce = models.ResponseStrucrt{
 		Links: models.ListOfReferens{
@@ -217,13 +256,17 @@ func (resourceHandler *ResourceHandler) postIssue(responseWriter http.ResponseWr
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	_, err = responseWriter.Write(response)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
@@ -233,26 +276,31 @@ func (resourceHandler *ResourceHandler) postHistory(responseWriter http.Response
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
-	var requestDataIssue models.HistoryInfo
-	err = json.Unmarshal(body, &requestDataIssue)
+	var historyInfo models.HistoryInfo
+	err = json.Unmarshal(body, &historyInfo)
 
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
-	var statusCode int
-	//id, err := PutIssueIntoDB функция которая будет помещать узел в БД БОРЯ
+
+	id, err := resourceHandler.InsertHistory(historyInfo)
 	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		//как-то напишем об ошибке
 		//statusCode = http.Status - подобрать верный статус
 	} else {
+		responseWriter.WriteHeader(http.StatusOK)
 		//statusCode = http.Status - подобрать верный статус
 	}
-	statusCode = statusCode + 1 // заглушка
+
 	var historyResponce = models.ResponseStrucrt{
 		Links: models.ListOfReferens{
 			Issues:    models.Link{Href: "/api/v1/issues"},
@@ -269,14 +317,19 @@ func (resourceHandler *ResourceHandler) postHistory(responseWriter http.Response
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	_, err = responseWriter.Write(response)
+
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
@@ -285,25 +338,32 @@ func (resourceHandler *ResourceHandler) postProject(responseWriter http.Response
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
-	var requestDataIssue models.ProjectInfo
-	err = json.Unmarshal(body, &requestDataIssue)
+	var projectInfo models.ProjectInfo
+	err = json.Unmarshal(body, &projectInfo)
 
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
-	var statusCode int
-	//id, err := PutIssueIntoDB функция которая будет помещать узел в БД БОРЯ
-	if err != nil {
 
+	id, err := resourceHandler.InsertProject(projectInfo)
+	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		//как-то напишем об ошибке
+		//statusCode = http.Status - подобрать верный статус
 	} else {
+		resourceHandler.logger.Log(logger.INFO, err.Error())
+		responseWriter.WriteHeader(http.StatusOK)
 		//statusCode = http.Status - подобрать верный статус
 	}
-	statusCode = statusCode + 1 // заглушка
+
 	var projectResponce = models.ResponseStrucrt{
 		Links: models.ListOfReferens{
 			Issues:    models.Link{Href: "/api/v1/issues"},
@@ -320,28 +380,18 @@ func (resourceHandler *ResourceHandler) postProject(responseWriter http.Response
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	_, err = responseWriter.Write(response)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	responseWriter.WriteHeader(http.StatusOK)
-}
-
-func (server *ResourceHandler) StartServer() {
-	server.logger.Log(logger.INFO, "Server start server...")
-
-	router := mux.NewRouter()
-
-	server.handlers(router)
-
-	err := http.ListenAndServe(server.configReader.GetResourceHost()+":"+server.configReader.GetResourceHost(), router)
-	if err != nil {
-		server.logger.Log(logger.ERROR, "Error while start a server")
-	}
-
 }
 
 func (server *ResourceHandler) handlers(router *mux.Router) {
