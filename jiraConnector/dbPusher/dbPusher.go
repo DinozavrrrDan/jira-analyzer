@@ -15,11 +15,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-<<<<<<< HEAD
-=======
 	"io"
 	"net/http"
->>>>>>> f088cd021ec45f2588741546a422d8f32f0e2981
 
 	_ "github.com/lib/pq"
 )
@@ -76,7 +73,6 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 	httpClient := &http.Client{}
 
 	for _, issue := range issues {
-<<<<<<< HEAD
 		exists, id := CheckIssueExists(databasePusher.database, "issues", "key", issue.Key)
 		if exists {
 			stmt, err :=
@@ -150,7 +146,6 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 			panic(err)
 		}
 		stmt.Exec(newAssigneeid, newAuthorId, 777, "idk", "idk")
-=======
 		projectId := databasePusher.getProjectId(issue.Project)
 		authorId := databasePusher.getAuthorId(issue.Author)
 		assigneeId := databasePusher.getAssigneeId(issue.Assignee)
@@ -219,6 +214,5 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 				databasePusher.insertInfoIntoStatusChanges(issueId, newAuthorId, changeTime, statusChange.FromStatus, statusChange.ToStatus)
 			}
 		}
->>>>>>> f088cd021ec45f2588741546a422d8f32f0e2981
 	}
 }
