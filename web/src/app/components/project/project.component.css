@@ -1,5 +1,5 @@
 table {
-  width: 75%;
+  width: 90%;
   margin: auto;
   display: table;
   border-collapse: collapse;
@@ -22,7 +22,10 @@ td, th {
 }
 
 .tdname {
-  width: 15%;
+  width: 25%;
+}
+
+.tdkey {
 }
 
 .tdbtn {
