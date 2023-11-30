@@ -29,9 +29,9 @@ type Page struct {
 }
 
 type IssueInfo struct {
-	Id      int `json:"id"`
+	ID      int `json:"id"`
 	Project struct {
-		Id    int    `json:"projectId"`
+		ID    int    `json:"projectId"`
 		Title string `json:"title"`
 	} `json:"project"`
 	Key         string    `json:"key"`
@@ -49,14 +49,14 @@ type IssueInfo struct {
 }
 
 type HistoryInfo struct {
-	IssueId    int       `json:"issueId"`
-	AuthorId   int       `json:"authorId"`
+	IssueID    int       `json:"issueId"`
+	AuthorID   int       `json:"authorId"`
 	ChangeTime time.Time `json:"changeTime"`
 	FromStatus string    `json:"fromStatus"`
 	ToStatus   string    `json:"toStatus"`
 }
 
 type ProjectInfo struct {
-	Id    int    `json:"projectId"`
+	ID    int    `json:"projectId"`
 	Title string `json:"title"`
 }
