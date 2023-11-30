@@ -49,6 +49,9 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 	}
 
 	issues, err := server.jiraConnector.GetProjectIssues(projectName)
+	fmt.Println(issues)
+	response, err := json.MarshalIndent(issues, "", "\t")
+	responseWriter.Write(response)
 	if err != nil {
 		server.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(400)

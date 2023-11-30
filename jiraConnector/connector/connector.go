@@ -207,7 +207,7 @@ func (connector *Connector) GetProjects(limit int, page int, search string) ([]m
 			counterOfProjects++
 
 			projects = append(projects, models.Project{
-				Existence: true,
+				Existence: false,
 				Id:        0,
 				Name:      element.Name,
 				Link:      element.Link,

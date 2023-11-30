@@ -10,26 +10,6 @@ import {PageInfo} from "../models/pageInfo.model";
 })
 export class ProjectPageComponent implements OnInit {
   projects: IProj[]
-  projTest = [
-    {
-      name: "A Project",
-      image: "An Image",
-      gitURL: "gitURL",
-      liveURL: "liveURL"
-    },
-    {
-      name: "A Project",
-      image: "An Image",
-      gitURL: "gitURL",
-      liveURL: "liveURL"
-    },
-    {
-      name: "A Project",
-      image: "An Image",
-      gitURL: "gitURL",
-      liveURL: "liveURL"
-    },
-  ]
   loading = false
   pr: IProj
   searchName = ''
