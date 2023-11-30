@@ -1,0 +1,100 @@
+table {
+  width: 75%;
+  margin: auto;
+  display: table;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+tr:hover{
+  background: #f3faf4;
+}
+tr {
+  border-bottom: 1px solid #d0d0d0;
+}
+
+td, th {
+  width: 32%;
+  padding: 15px 5px;
+  display: table-cell;
+  text-align: left;
+  vertical-align: middle;
+  border-radius: 2px;
+}
+
+.tdname {
+  width: 15%;
+}
+
+.tdbtn {
+  width: 15%;
+  text-align: center;
+}
+
+table, th, td {
+  border: none;
+}
+
+.waves-effect {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+  overflow: hidden;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn {
+  text-decoration: none;
+  color: #fff;
+  background-color: #26a69a;
+  text-align: center;
+  letter-spacing: .5px;
+  -webkit-transition: .2s ease-out;
+  transition: .2s ease-out;
+  cursor: pointer;
+}
+
+.btn {
+  font-size: 1rem;
+  outline: 0;
+}
+
+.btn {
+  border: none;
+  border-radius: 2px;
+  display: inline-block;
+  height: 36px;
+  width: 150px;
+  line-height: 36px;
+  padding: 0 2rem;
+  text-transform: uppercase;
+  vertical-align: middle;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btnAdd {
+  background: #37b34a;
+}
+
+.btnDelete {
+  background-color: #e86666;
+}
+
+.btn:hover {
+  background: #5ec56d;
+}
+
+.btn:active {
+  background: #8ade98;
+}
+
+.btnDelete:hover {
+  background: #ef8787;
+}
+
+.btnDelete:active {
+  background: #ef9494;
+}

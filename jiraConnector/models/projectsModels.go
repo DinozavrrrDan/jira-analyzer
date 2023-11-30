@@ -1,9 +1,11 @@
 package models
 
 type Project struct {
-	Key  string `json:"key"`
-	Name string `json:"name"`
-	Link string `json:"link"`
+	Id        int    `json:"Id"`
+	Key       string `json:"Key"`
+	Name      string `json:"Name"`
+	Link      string `json:"Link"`
+	Existence bool   `json:"Existence"`
 }
 
 type JiraProject struct {
@@ -14,11 +16,10 @@ type JiraProject struct {
 
 type Projects struct {
 	Projects []Project `json:"projects"`
-	Page     Page      `json:"page"`
 }
 
 type Page struct {
-	TotalPageCount     int `json:"totalPageCount"`
-	CurrentPageNumber  int `json:"currentPageNumber"`
-	TotalProjectsCount int `json:"totalProjectsCount"`
+	CurrentPageNumber  int `json:"currentPage"`
+	TotalPageCount     int `json:"pageCount"`
+	TotalProjectsCount int `json:"projectsCount"`
 }

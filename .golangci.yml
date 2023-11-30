@@ -1,0 +1,39 @@
+run:
+  timeout: 5m
+  tests: false
+
+linters:
+  enable-all: true
+  disable:
+    - exhaustivestruct
+    - ifshort
+    - maligned
+    - interfacer
+    - deadcode
+    - golint
+    - varcheck
+    - structcheck
+    - nosnakecase
+    - scopelint
+    - varnamelen
+    - forbidigo
+    - goimports
+
+  fast: false
+
+linters-settings:
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(example_mock)
+    skip-generated: false
+    custom-order: true
+  depguard:
+    rules:
+      main:
+        files:
+          - !$test
+        allow:
+          - $gostd
+          - github.com/spbpu_go_course/lab_5

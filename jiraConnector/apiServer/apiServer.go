@@ -6,10 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"Jira-analyzer/jiraConnector/configReader"
+	"Jira-analyzer/analyzer/models"
+	"Jira-analyzer/common/configReader"
+	"Jira-analyzer/common/logger"
 	"Jira-analyzer/jiraConnector/connector"
 	"Jira-analyzer/jiraConnector/dbPusher"
-	"Jira-analyzer/jiraConnector/logger"
 	"Jira-analyzer/jiraConnector/transformer"
 )
 
@@ -47,8 +48,12 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 		return
 	}
 
-	issues /*, err*/ := server.jiraConnector.GetProjectIssues(projectName)
-	//if err != nil {}
+	issues, err := server.jiraConnector.GetProjectIssues(projectName)
+	if err != nil {
+		server.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(400)
+		return
+	}
 
 	transformewIssues := server.transformer.TrasformData(issues)
 	server.databasePusher.PushIssue(transformewIssues)
@@ -67,10 +72,30 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 
 	server.logger.Log(logger.INFO, "RETURN PROJECTS")
 
-	projets /*, err*/ := server.jiraConnector.GetProjects(limit, page, search)
-	//if err != nil {}
-	response, _ := json.Marshal(projets)
-	fmt.Printf(string(response))
+	projets, pages, err := server.jiraConnector.GetProjects(limit, page, search)
+	if err != nil {
+		server.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(400)
+		return
+	}
+	var issueResponce = models.ResponseStrucrt{
+		Links: models.ListOfReferens{
+			Issues:    models.Link{Href: "/api/v1/issues"},
+			Projects:  models.Link{Href: "/api/v1/projects"},
+			Histories: models.Link{Href: "/api/v1/histories"},
+			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", 1)},
+		},
+		Info:    projets,
+		Message: "Hello from connector",
+		Name:    "",
+		PageInfo: models.Page{
+			TotalPageCount:     pages.TotalPageCount,
+			CurrentPageNumber:  pages.CurrentPageNumber,
+			TotalProjectsCount: pages.TotalProjectsCount,
+		},
+		Status: true,
+	}
+	response, err := json.MarshalIndent(issueResponce, "", "\t")
 	responseWriter.Write(response)
 }
 
@@ -81,12 +106,13 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
 
 	limit := request.URL.Query().Get("limit")
 	if len(limit) != 0 {
+		fmt.Println("linit: " + limit + " !")
 		defaultLimit, _ = strconv.Atoi(limit) //нужно ли обрабатывать ошибки
 	}
 
 	page := request.URL.Query().Get("page")
 	if len(page) != 0 {
-		defaultLimit, _ = strconv.Atoi(page)
+		defaultPage, _ = strconv.Atoi(page)
 	}
 
 	search := request.URL.Query().Get("search")
@@ -99,13 +125,15 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
 
 func (server *ApiServer) StartServer() {
 	server.logger.Log(logger.INFO, "Server start server...")
-
-	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
-	http.HandleFunc("/api/v1/connector/projects", server.project)
-
-	err := http.ListenAndServe("localhost:8003", nil)
+	server.handlers()
+	err := http.ListenAndServe(server.configReader.GetConnectorHost()+":"+server.configReader.GetConnectorPort(), nil)
 
 	if err != nil {
 		server.logger.Log(logger.ERROR, "Error while start a server")
 	}
+}
+
+func (server *ApiServer) handlers() {
+	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
+	http.HandleFunc("/api/v1/connector/projects", server.project)
 }
