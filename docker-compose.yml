@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  postresql:
+    image: postgres:16-alpine
+    container_name: psql
+    environment:
+      POSTGRES_DB: testdb
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: pgpwd
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    build: Database_image/
+    networks:
+      - ps
+
+networks:
+  ps:
