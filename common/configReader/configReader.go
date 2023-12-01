@@ -47,23 +47,23 @@ func (configReader *ConfigReader) GetJiraUrl() string {
 }
 
 func (configReader *ConfigReader) GetHostDB() string {
-	return configReader.viperConfigReader.GetString("hostDB")
+	return configReader.viperConfigReader.GetString("database.hostDB")
 }
 
 func (configReader *ConfigReader) GetDatabaseName() string {
-	return configReader.viperConfigReader.GetString("NameDB")
+	return configReader.viperConfigReader.GetString("database.nameDB")
 }
 
 func (configReader *ConfigReader) GetPasswordDB() string {
-	return configReader.viperConfigReader.GetString("passwordDB")
+	return configReader.viperConfigReader.GetString("database.passwordDB")
 }
 
 func (configReader *ConfigReader) GetUserDb() string {
-	return configReader.viperConfigReader.GetString("userDB")
+	return configReader.viperConfigReader.GetString("database.userDB")
 }
 
 func (configReader *ConfigReader) GetPortDB() int {
-	return configReader.viperConfigReader.GetInt("portDB")
+	return configReader.viperConfigReader.GetInt("database.portDB")
 }
 
 func (configReader *ConfigReader) GetThreadCount() int {
@@ -83,49 +83,49 @@ func (configReader *ConfigReader) GetMinTimeSleep() int {
 }
 
 func (configReader *ConfigReader) GetHostServer() string {
-	return configReader.viperConfigReader.GetString("hostServer")
+	return configReader.viperConfigReader.GetString("apiServer.hostServer")
 }
 
 func (configReader *ConfigReader) GetPortServer() int {
-	return configReader.viperConfigReader.GetInt("portServer")
+	return configReader.viperConfigReader.GetInt("apiServer.portServer")
 }
 
 func (configReader *ConfigReader) GetApiPrefix() string {
-	return configReader.viperConfigReader.GetString("apiPref")
+	return configReader.viperConfigReader.GetString("apiServer.apiPref")
 }
 
 func (configReader *ConfigReader) GetResourcePrefix() string {
-	return configReader.viperConfigReader.GetString("resourcePref")
+	return configReader.viperConfigReader.GetString("resource.resourcePref")
 }
 
 func (configReader *ConfigReader) GetResourceHost() string {
-	return configReader.viperConfigReader.GetString("resourceHost")
+	return configReader.viperConfigReader.GetString("resource.resourceHost")
 }
 
 func (configReader *ConfigReader) GetResourcePort() string {
-	return configReader.viperConfigReader.GetString("resourcePort")
+	return configReader.viperConfigReader.GetString("resource.resourcePort")
 }
 
 func (configReader *ConfigReader) GetConnectorPref() string {
-	return configReader.viperConfigReader.GetString("connectorPref")
+	return configReader.viperConfigReader.GetString("connector.connectorPref")
 }
 
 func (configReader *ConfigReader) GetConnectorHost() string {
-	return configReader.viperConfigReader.GetString("connectorHost")
+	return configReader.viperConfigReader.GetString("connector.connectorHost")
 }
 
 func (configReader *ConfigReader) GetConnectorPort() string {
-	return configReader.viperConfigReader.GetString("connectorPort")
+	return configReader.viperConfigReader.GetString("connector.connectorPort")
 }
 
 func (configReader *ConfigReader) GetAnalyticPref() string {
-	return configReader.viperConfigReader.GetString("analyticPref")
+	return configReader.viperConfigReader.GetString("analytics.analyticPref")
 }
 
 func (configReader *ConfigReader) GetAnalyticHost() string {
-	return configReader.viperConfigReader.GetString("analyticHost")
+	return configReader.viperConfigReader.GetString("analytics.analyticHost")
 }
 
 func (configReader *ConfigReader) GetAnalyticPort() string {
-	return configReader.viperConfigReader.GetString("analyticPort")
+	return configReader.viperConfigReader.GetString("analytics.analyticPort")
 }
