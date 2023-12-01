@@ -69,8 +69,8 @@ func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWri
 		return
 	}
 
-	var issueResponse = models.ResponseStrucrt{
-		Links: models.ListOfReferens{
+	var issueResponse = models.ResponseStruct{
+		Links: models.ListOfReferences{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
 			Histories: models.Link{Href: "/api/v1/histories"},
@@ -123,8 +123,8 @@ func (resourceHandler *ResourceHandler) getHistory(responseWriter http.ResponseW
 		return
 	}
 
-	var historyResponse = models.ResponseStrucrt{
-		Links: models.ListOfReferens{
+	var historyResponse = models.ResponseStruct{
+		Links: models.ListOfReferences{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
 			Histories: models.Link{Href: "/api/v1/histories"},
@@ -176,8 +176,8 @@ func (resourceHandler *ResourceHandler) getProject(responseWriter http.ResponseW
 		return
 	}
 
-	var projectResponce = models.ResponseStrucrt{
-		Links: models.ListOfReferens{
+	var projectResponce = models.ResponseStruct{
+		Links: models.ListOfReferences{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
 			Histories: models.Link{Href: "/api/v1/histories"},
@@ -241,8 +241,8 @@ func (resourceHandler *ResourceHandler) postIssue(responseWriter http.ResponseWr
 		//statusCode = http.Status - подобрать верный статус
 	}
 
-	var issuesResponce = models.ResponseStrucrt{
-		Links: models.ListOfReferens{
+	var issuesResponce = models.ResponseStruct{
+		Links: models.ListOfReferences{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
 			Histories: models.Link{Href: "/api/v1/histories"},
@@ -302,8 +302,8 @@ func (resourceHandler *ResourceHandler) postHistory(responseWriter http.Response
 		//statusCode = http.Status - подобрать верный статус
 	}
 
-	var historyResponse = models.ResponseStrucrt{
-		Links: models.ListOfReferens{
+	var historyResponse = models.ResponseStruct{
+		Links: models.ListOfReferences{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
 			Histories: models.Link{Href: "/api/v1/histories"},
@@ -365,8 +365,8 @@ func (resourceHandler *ResourceHandler) postProject(responseWriter http.Response
 		//statusCode = http.Status - подобрать верный статус
 	}
 
-	var projectResponse = models.ResponseStrucrt{
-		Links: models.ListOfReferens{
+	var projectResponse = models.ResponseStruct{
+		Links: models.ListOfReferences{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
 			Histories: models.Link{Href: "/api/v1/histories"},

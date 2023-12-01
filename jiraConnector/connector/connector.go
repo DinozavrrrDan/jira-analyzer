@@ -89,7 +89,7 @@ func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Cl
 	var issues []models.Issue
 
 	counterOfThreads := connector.configReader.GetThreadCount()
-	issueInOneRequest := connector.configReader.GetIssusOnOneRequest()
+	issueInOneRequest := connector.configReader.GetIssuesOnOneRequest()
 
 	channelError := make(chan models.Issue)
 	waitGroup := sync.WaitGroup{}

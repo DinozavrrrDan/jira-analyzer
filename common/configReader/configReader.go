@@ -70,7 +70,7 @@ func (configReader *ConfigReader) GetThreadCount() int {
 	return configReader.viperConfigReader.GetInt("threadCount")
 }
 
-func (configReader *ConfigReader) GetIssusOnOneRequest() int {
+func (configReader *ConfigReader) GetIssuesOnOneRequest() int {
 	return configReader.viperConfigReader.GetInt("issueInOneRequest")
 }
 
