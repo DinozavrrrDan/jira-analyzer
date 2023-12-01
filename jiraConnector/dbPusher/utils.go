@@ -1,14 +1,18 @@
 package dbPusher
 
 import (
-	"Jira-analyzer/common/logger"
+	"fmt"
 	"time"
 )
 
-func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timeSpent int) {
-	stmt, _ :=
-		databasePusher.database.Prepare("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-	_, err := stmt.Exec(
+func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timeSpent int) error {
+
+	stmt, err :=
+		databasePusher.database.Prepare("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)")
+
+	defer stmt.Close()
+
+	_, err = stmt.Exec(
 		projectId,
 		authorId,
 		assigneeId,
@@ -24,13 +28,16 @@ func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, 
 		timeSpent)
 
 	if err != nil {
-		databasePusher.logger.Log(logger.ERROR, err.Error())
+		return fmt.Errorf("ERROR: %v", err.Error())
 	}
+
+	return nil
 }
 
-func (databasePusher *DatabasePusher) insertInfoIntoStatusChanges(issueIdId, authorId int, changeTime time.Time, fromStatus, toStatus string) {
+func (databasePusher *DatabasePusher) insertInfoIntoStatusChanges(issueIdId, authorId int, changeTime time.Time, fromStatus, toStatus string) error {
 	stmt, _ :=
-		databasePusher.database.Prepare("INSERT INTO statuschanges (issueId, authorId, changeTime, fromStatus, toStatus) VALUES (?, ?, ?, ?, ?)")
+		databasePusher.database.Prepare("INSERT INTO statuschange (issueId, authorId, changeTime, fromStatus, toStatus) VALUES ($1, $2, $3, $4, $5)")
+
 	_, err := stmt.Exec(
 		issueIdId,
 		authorId,
@@ -39,17 +46,20 @@ func (databasePusher *DatabasePusher) insertInfoIntoStatusChanges(issueIdId, aut
 		toStatus)
 
 	if err != nil {
-		databasePusher.logger.Log(logger.ERROR, err.Error())
+		return err
 	}
+
+	return nil
 }
 
 // updateIssue обвновляет данные issue заданного key в таблицк issues
-func (databasePusher *DatabasePusher) updateIssue(projectId, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timespent int) {
+func (databasePusher *DatabasePusher) updateIssue(projectID, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timespent int) error {
 	stmt, _ :=
-		databasePusher.database.Prepare("UPDATE issues set projectId = ?, authorId = ?, assigneeId = ? summary = ?, description = ?, type = ?, priority = ?, status = ?, createdTime = ?, closedtime = ?, updatedtime = ?, timespent = ? where key = ?")
+		databasePusher.database.
+			Prepare("UPDATE issues set projectid = $1, authorid = $2, assigneeid = $3, summary = $4, description = $5, type = $6, priority = $7, status = $8, createdtime = $9, closedtime = $10, updatedtime = $11, timespent = $12 where key = $13")
 
 	_, err := stmt.Exec(
-		projectId,
+		projectID,
 		authorId,
 		assigneeId,
 		summary,
@@ -64,93 +74,74 @@ func (databasePusher *DatabasePusher) updateIssue(projectId, authorId, assigneeI
 		key)
 
 	if err != nil {
-		databasePusher.logger.Log(logger.ERROR, err.Error())
+		return fmt.Errorf("ERROR: %v", err.Error())
 	}
+
+	return nil
 }
 
 // getIssueId получает id по ключу задачи из таблицы issues
-func (databasePusher *DatabasePusher) getIssueId(issueKey string) int {
+func (databasePusher *DatabasePusher) getIssueId(issueKey string) (int, error) {
 	var issueID int
-	err := databasePusher.database.QueryRow("SELECT id FROM issues where key = ?", issueKey).Scan(&issueID)
+	_ = databasePusher.database.QueryRow("SELECT id FROM issues where key = $1", issueKey).Scan(&issueID)
 
-	if err != nil {
-		databasePusher.logger.Log(logger.ERROR, err.Error())
-	}
-
-	return issueID
+	return issueID, nil
 }
 
 // getProjectId получает id по названию проекта из таблицы project
-func (databasePusher *DatabasePusher) getProjectId(projectTitle string) int {
+func (databasePusher *DatabasePusher) getProjectId(projectTitle string) (int, error) {
 	var projectId int
-	err := databasePusher.database.QueryRow("SELECT id FROM project where title = ?", projectTitle).Scan(&projectId)
-
-	if err != nil {
-		databasePusher.logger.Log(logger.ERROR, err.Error())
-	}
+	_ = databasePusher.database.QueryRow("SELECT id FROM project where title = $1", projectTitle).Scan(&projectId)
 
 	if projectId == 0 {
-		err = databasePusher.database.QueryRow("INSERT INTO project (title) VALUES(?) RETURNING id", projectTitle).
+		err := databasePusher.database.QueryRow("INSERT INTO project (title) VALUES($1) RETURNING id", projectTitle).
 			Scan(&projectId)
 		if err != nil {
-			databasePusher.logger.Log(logger.ERROR, err.Error())
+			return projectId, fmt.Errorf("ERROR: %v", err.Error())
 		}
 	}
 
-	return projectId
+	return projectId, nil
 }
 
 // getAuthorId получает id по имени автора из таблицы author
-func (databasePusher *DatabasePusher) getAuthorId(authorName string) int {
+func (databasePusher *DatabasePusher) getAuthorId(authorName string) (int, error) {
 	var authorId int
-	err := databasePusher.database.QueryRow("SELECT id FROM author where name = ?", authorName).
-		Scan(&authorId)
-
-	if err != nil {
-		databasePusher.logger.Log(logger.ERROR, err.Error())
-	}
+	_ = databasePusher.database.QueryRow("SELECT id FROM author where name = $1", authorName).Scan(&authorId)
 
 	if authorId == 0 {
-		err = databasePusher.database.QueryRow("INSERT INTO author (name) VALUES(?) RETURNING id", authorName).
+		err := databasePusher.database.QueryRow("INSERT INTO author (name) VALUES($1) RETURNING id", authorName).
 			Scan(&authorId)
 
 		if err != nil {
-			databasePusher.logger.Log(logger.ERROR, err.Error())
+			return authorId, fmt.Errorf("ERROR: %v", err.Error())
 		}
 	}
 
-	return authorId
+	return authorId, nil
 }
 
 // getAssigneeId получает id по имени assignee из таблицы author
-func (databasePusher *DatabasePusher) getAssigneeId(assignee string) int {
+func (databasePusher *DatabasePusher) getAssigneeId(assignee string) (int, error) {
 	var assigneeId int
-	err := databasePusher.database.QueryRow("SELECT id FROM author where name = ?", assignee).
+	err := databasePusher.database.QueryRow("SELECT id FROM author where name = $1", assignee).
 		Scan(&assigneeId)
 
-	if err != nil {
-		databasePusher.logger.Log(logger.ERROR, err.Error())
-	}
-
 	if assigneeId == 0 {
-		err = databasePusher.database.QueryRow("INSERT INTO author (name) VALUES(?) RETURNING id", assignee).Scan(&assigneeId)
+		err = databasePusher.database.QueryRow("INSERT INTO author (name) VALUES($1) RETURNING id", assignee).Scan(&assigneeId)
 		if err != nil {
-			databasePusher.logger.Log(logger.ERROR, err.Error())
+			return assigneeId, fmt.Errorf("ERROR: %v", err.Error())
 		}
 	}
 
-	return assigneeId
+	return assigneeId, nil
 }
 
 // checkIssueExists проверяет наличие issue заданного issueKey
 func (databasePusher *DatabasePusher) checkIssueExists(issueKey string) bool {
 	var issueId int
-	err := databasePusher.database.QueryRow("SELECT id FROM issues where key = ?", issueKey).
-		Scan(&issueId)
 
-	if err != nil {
-		databasePusher.logger.Log(logger.ERROR, err.Error())
-	}
+	_ = databasePusher.database.QueryRow("SELECT id FROM issues where key = $1", issueKey).Scan(&issueId)
 
-	return !(issueId == 0)
+	return issueId != 0
 }

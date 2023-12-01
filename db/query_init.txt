@@ -5,9 +5,7 @@ CREATE TABLE author (id serial PRIMARY KEY, name TEXT);
 CREATE TABLE issues (
     id serial PRIMARY KEY,
     projectId INT NOT NULL,
-    FOREIGN KEY (projectId) REFERENCES project (id) ON DELETE CASCADE ON UPDATE CASCADE,
     authorId INT NOT NULL,
-    FOREIGN KEY (authorId) REFERENCES author (id) ON DELETE CASCADE ON UPDATE CASCADE,
     assigneeId INT NOT NULL,
     key TEXT,
     summary TEXT,
@@ -23,14 +21,11 @@ CREATE TABLE issues (
 
 CREATE TABLE statusChange (
     issueId INT NOT NULL,
-    FOREIGN KEY (issueId) REFERENCES Issue (id) ON DELETE CASCADE ON UPDATE CASCADE,
     authorId INT NOT NULL,
-    FOREIGN KEY (authorId) REFERENCES Author (id) ON DELETE CASCADE ON UPDATE CASCADE,
     changeTime TIMESTAMP WITHOUT TIME ZONE,
     fromStatus TEXT,
     toStatus TEXT
 );
 
-CREATE USER pguser WITH ENCRYPTED PASSWORD 'pgpwd';
-
-GRANT ALL PRIVILEGES ON DATABASE testdb TO pguser;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO pguser;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO pguser;

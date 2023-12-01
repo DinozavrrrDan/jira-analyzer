@@ -38,13 +38,17 @@ func CreateNewJiraConnector() *Connector {
 данном параметре limit
 */
 func (connector *Connector) GetProjectIssues(projectName string) ([]models.Issue, error) {
-	isRequestGompleteSuccsesfully := false
+	isRequestGompleteSuccsesfully := true
 	timeUntilNewRequest := connector.configReader.GetMinTimeSleep()
 
 	var issues []models.Issue
 
-	for isRequestGompleteSuccsesfully || timeUntilNewRequest <= connector.configReader.GetMaxTimeSleep() {
+	fmt.Println("GetProjectIssues1s")
+
+	for isRequestGompleteSuccsesfully && timeUntilNewRequest <= connector.configReader.GetMaxTimeSleep() {
 		httpClient := &http.Client{}
+
+		fmt.Println("GetProjectIssues2s")
 
 		response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/search?jql=project=" +
 			projectName + "&expand=changelog&startAt=0&maxResults=1")
@@ -146,7 +150,7 @@ func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Cl
 		timeUntilNewRequest = connector.increaseTimeUntilNewRequest(timeUntilNewRequest, projectName)
 	}
 
-	return issues, timeUntilNewRequest, !isError
+	return issues, timeUntilNewRequest, isError
 }
 
 func (connector *Connector) increaseTimeUntilNewRequest(timeUntilNewRequest int, projectName string) int {
@@ -207,7 +211,7 @@ func (connector *Connector) GetProjects(limit int, page int, search string) ([]m
 			counterOfProjects++
 
 			projects = append(projects, models.Project{
-				Existence: true,
+				Existence: false,
 				Id:        0,
 				Name:      element.Name,
 				Link:      element.Link,

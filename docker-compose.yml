@@ -2,17 +2,55 @@ version: "3.9"
 
 services:
   postresql:
-    image: postgres:16-alpine
+    image: postgres:16-alpine3.18
     container_name: psql
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: testdb
       POSTGRES_USER: pguser
       POSTGRES_PASSWORD: pgpwd
+      PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
-      - ./data:/var/lib/postgresql/data
-    build: Database_image/
+      - testdb-data:/var/lib/postgresql/data
     networks:
       - ps
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U habrpguser -d habrdb" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 5G
+
+  pgadmin:
+    container_name: pgadmin_container
+    image: dpage/pgadmin4:7.2
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "habrpguser@habr.com"
+      PGADMIN_DEFAULT_PASSWORD: "pgadminpwd4habr"
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    volumes:
+       - pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+    deploy:
+       resources:
+        limits:
+           cpus: '0.5'
+           memory: 1G
+    networks:
+      - postgres
+volumes:
+  testdb-data:
+  pgadmin-data:
 
 networks:
-  ps:
+  postgres:
+    driver: bridge
