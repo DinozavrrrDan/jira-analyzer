@@ -15,10 +15,11 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	_ "github.com/lib/pq"
 	"io"
 	"net/http"
-
-	_ "github.com/lib/pq"
+	"strings"
+	"time"
 )
 
 type DatabasePusher struct {
@@ -48,112 +49,35 @@ func CreateNewDatabasePusher() *DatabasePusher {
 	}
 }
 
-func CheckIssueExists(db *sql.DB, table, column string, value string) (bool, string) {
-	row := db.QueryRow("SELECT assigneeId FROM $1 where $2 = $3", table, column, value)
-	err := row.Scan(&value)
-	if err != nil {
-		return false, value
-	} else {
-		return true, value
-	}
-}
-
-func CountRows(db *sql.DB, table string) (int, error) {
-	stmt, err := db.Prepare("SELECT COUNT(*) FROM ?")
-	if err != nil {
-		return 0, err
-	}
-
-	var count int
-	err = stmt.QueryRow(table).Scan(&count)
-	return count, err
-}
-
 func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue) {
+
 	httpClient := &http.Client{}
 
 	for _, issue := range issues {
-		exists, id := CheckIssueExists(databasePusher.database, "issues", "key", issue.Key)
-		if exists {
-			stmt, err :=
-				databasePusher.database.Prepare("UPDATE issues set summary = ?, description = ?, type = ?, priority = ?, status = ?, closedtime = ?, updatedtime = ?, timespent = ? where key = ?")
-			if err != nil {
-				panic(err)
-			}
-			stmt.Exec(issue.Summary, issue.Description, issue.Type, issue.Priority, issue.Status, issue.ClosedTime, issue.UpdatedTime, issue.Timespent, issue.Key)
+		projectId, err := databasePusher.getProjectId(issue.Project)
 
-			stmt, err =
-				databasePusher.database.Prepare("UPDATE project set title = ? where id = ?")
-			if err != nil {
-				panic(err)
-			}
-			projectId := databasePusher.database.QueryRow("SELECT projectId FROM $1 where $2 = $3", "issues", "assigneeId", id)
-			stmt.Exec(issue.Project, projectId)
-
-			stmt, err =
-				databasePusher.database.Prepare("UPDATE author set name = ? where id = ?")
-			if err != nil {
-				panic(err)
-			}
-			authorId := databasePusher.database.QueryRow("SELECT authorId FROM $1 where $2 = $3", "issues", "assigneeId", id)
-			stmt.Exec(issue.Author, authorId)
-
-			stmt, err =
-				databasePusher.database.Prepare("UPDATE statusChanges set changeTime = ?, fromStatus = ?, toStatus = ? where id = ?")
-			if err != nil {
-				panic(err)
-			}
-			stmt.Exec(777, "idk", "idk", authorId)
-		}
-
-		newProjectId, err := CountRows(databasePusher.database, "project")
 		if err != nil {
-			panic(err)
-		}
-		newAuthorId, err := CountRows(databasePusher.database, "author")
-		if err != nil {
-			panic(err)
-		}
-		newAssigneeid, err := CountRows(databasePusher.database, "issues")
-		if err != nil {
-			panic(err)
+			databasePusher.logger.Log(logger.ERROR, err.Error())
+			return
 		}
 
-		stmt, err :=
-			databasePusher.database.Prepare("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-		if err != nil {
-			panic(err)
-		}
-		stmt.Exec(newProjectId, newAuthorId, newAssigneeid, issue.Assignee, issue.Key, issue.Summary, issue.Description, issue.Type, issue.Priority, issue.Status, issue.CreatedTime, issue.ClosedTime, issue.UpdatedTime, issue.Timespent)
+		authorId, err := databasePusher.getAuthorId(issue.Author)
 
-		stmt, err =
-			databasePusher.database.Prepare("INSERT INTO project (id, title) values (?, ?)")
 		if err != nil {
-			panic(err)
+			databasePusher.logger.Log(logger.ERROR, err.Error())
+			return
 		}
-		stmt.Exec(newProjectId, issue.Project)
 
-		stmt, err =
-			databasePusher.database.Prepare("INSERT INTO author (id, name) values (?, ?)")
-		if err != nil {
-			panic(err)
-		}
-		stmt.Exec(newAuthorId, issue.Author)
+		assigneeId, err := databasePusher.getAssigneeId(issue.Assignee)
 
-		stmt, err =
-			databasePusher.database.Prepare("INSERT INTO statusChange (issueId, authorId, changeTime, fromStatus, toStatus) values (?, ?, ?, ?, ?)")
 		if err != nil {
-			panic(err)
+			databasePusher.logger.Log(logger.ERROR, err.Error())
+			return
 		}
-		stmt.Exec(newAssigneeid, newAuthorId, 777, "idk", "idk")
-		projectId := databasePusher.getProjectId(issue.Project)
-		authorId := databasePusher.getAuthorId(issue.Author)
-		assigneeId := databasePusher.getAssigneeId(issue.Assignee)
-		issueId := databasePusher.getIssueId(issue.Key)
 
 		exists := databasePusher.checkIssueExists(issue.Key)
 		if exists {
-			databasePusher.updateIssue(
+			err := databasePusher.updateIssue(
 				projectId,
 				authorId,
 				assigneeId,
@@ -167,8 +91,12 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 				issue.ClosedTime,
 				issue.UpdatedTime,
 				issue.Timespent)
+			if err != nil {
+				databasePusher.logger.Log(logger.ERROR, err.Error())
+				return
+			}
 		} else {
-			databasePusher.insertInfoIntoIssues(
+			err := databasePusher.insertInfoIntoIssues(
 				projectId,
 				authorId,
 				assigneeId,
@@ -182,19 +110,31 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 				issue.ClosedTime,
 				issue.UpdatedTime,
 				issue.Timespent)
+			if err != nil {
+				databasePusher.logger.Log(logger.ERROR, fmt.Sprintf("ERROR: %v", err.Error()))
+				return
+			}
+		}
+
+		issueId, err := databasePusher.getIssueId(issue.Key)
+
+		if err != nil {
+			databasePusher.logger.Log(logger.ERROR, fmt.Sprintf("ERROR: %v", err.Error()))
+			return
 		}
 
 		requestString := databasePusher.configReader.GetJiraUrl() + "/rest/api/2/issue/" + issue.Key + "?expand=changelog"
+
 		response, err := httpClient.Get(requestString)
 		if err != nil {
-			databasePusher.logger.Log(logger.ERROR, err.Error())
+			databasePusher.logger.Log(logger.ERROR, fmt.Sprintf("ERROR: %v", err.Error()))
 			return
 		}
 
 		body, err := io.ReadAll(response.Body)
 
 		if err != nil {
-			databasePusher.logger.Log(logger.ERROR, err.Error())
+			databasePusher.logger.Log(logger.ERROR, fmt.Sprintf("ERROR: %v", err.Error()))
 			return
 		}
 
@@ -202,17 +142,35 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 		err = json.Unmarshal(body, &issueHistories)
 
 		if err != nil {
-			databasePusher.logger.Log(logger.ERROR, err.Error())
+			databasePusher.logger.Log(logger.ERROR, fmt.Sprintf("ERROR: %v", err.Error()))
 			return
 		}
 
 		for _, history := range issueHistories.Changelog.Histories {
 			for _, statusChange := range history.StatusChanges {
-				changeTime := history.ChangeTime
-				newAuthorId := databasePusher.getAuthorId(history.Author.Name)
+				if strings.Compare(statusChange.Field, "status") == 0 {
 
-				databasePusher.insertInfoIntoStatusChanges(issueId, newAuthorId, changeTime, statusChange.FromStatus, statusChange.ToStatus)
+					createdTime, _ := time.Parse("2006-01-02T15:04:05.999-0700", history.ChangeTime)
+
+					if databasePusher.skipStatusChange(issueId, createdTime) {
+						break
+					}
+
+					newAuthorId, _ := databasePusher.getAuthorId(history.Author.Name)
+
+					err := databasePusher.insertInfoIntoStatusChanges(issueId, newAuthorId, createdTime, statusChange.FromStatus, statusChange.ToStatus)
+					if err != nil {
+						databasePusher.logger.Log(logger.ERROR, err.Error())
+						return
+					}
+				}
 			}
 		}
 	}
+}
+
+func (databasePusher *DatabasePusher) skipStatusChange(issueId int, createdTime time.Time) bool {
+	var count int
+	_ = databasePusher.database.QueryRow("SELECT COUNT(*) FROM statuschange WHERE issueid=$1 AND changetime=$2", issueId, createdTime).Scan(&count)
+	return count != 0
 }
