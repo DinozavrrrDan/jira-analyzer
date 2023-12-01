@@ -72,15 +72,13 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 
 	responseWriter.Header().Set("Content-Type", "application/json")
 
-	server.logger.Log(logger.INFO, "RETURN PROJECTS")
-
 	projects, pages, err := server.jiraConnector.GetProjects(limit, page, search)
 	if err != nil {
 		server.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	var issueResponce = models.ResponseStrucrt{
+	var issueResponse = models.ResponseStrucrt{
 		Links: models.ListOfReferens{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
@@ -97,14 +95,13 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 		},
 		Status: true,
 	}
-	response, _ := json.MarshalIndent(issueResponce, "", "\t")
+	response, _ := json.MarshalIndent(issueResponse, "", "\t")
 	_, err = responseWriter.Write(response)
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	responseWriter.WriteHeader(http.StatusCreated)
 }
 
 func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
@@ -114,7 +111,6 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
 
 	limit := request.URL.Query().Get("limit")
 	if len(limit) != 0 {
-		fmt.Println("linit: " + limit + " !")
 		defaultLimit, _ = strconv.Atoi(limit) //нужно ли обрабатывать ошибки
 	}
 

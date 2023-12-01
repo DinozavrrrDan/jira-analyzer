@@ -170,7 +170,6 @@ func (connector *Connector) increaseTimeUntilNewRequest(timeUntilNewRequest int,
 func (connector *Connector) GetProjects(limit int, page int, search string) ([]models.Project, models.Page, error) {
 	httpClient := &http.Client{}
 
-	fmt.Println(connector.jiraRepositoryUrl)
 	response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/project")
 
 	if err != nil || response.StatusCode != http.StatusOK {
