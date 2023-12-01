@@ -1,0 +1,1 @@
+psql -U postgres --dbname=testdb --file=/docker-entrypoint-initdb.d/query_init.txt
