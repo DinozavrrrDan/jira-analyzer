@@ -29,14 +29,15 @@ func CreateNewResourceHandler() *ResourceHandler {
 		newReader.GetPasswordDB(),
 		newReader.GetDatabaseName())
 	newDatabase, err := sql.Open("postgres", sqlInfo)
-
+	newLogger := logger.CreateNewLogger()
 	if err != nil {
-		panic(err)
+		newLogger.Log(logger.ERROR, err.Error())
+		return &ResourceHandler{}
 	}
 
 	return &ResourceHandler{
 		configReader: newReader,
-		logger:       logger.CreateNewLogger(),
+		logger:       newLogger,
 		database:     newDatabase,
 	}
 }
@@ -68,7 +69,7 @@ func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWri
 		return
 	}
 
-	var issueResponce = models.ResponseStrucrt{
+	var issueResponse = models.ResponseStrucrt{
 		Links: models.ListOfReferens{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
@@ -80,7 +81,7 @@ func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWri
 		Status:  true,
 	}
 
-	response, err := json.MarshalIndent(issueResponce, "", "\t")
+	response, err := json.MarshalIndent(issueResponse, "", "\t")
 
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
@@ -122,7 +123,7 @@ func (resourceHandler *ResourceHandler) getHistory(responseWriter http.ResponseW
 		return
 	}
 
-	var historyResponce = models.ResponseStrucrt{
+	var historyResponse = models.ResponseStrucrt{
 		Links: models.ListOfReferens{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
@@ -134,7 +135,7 @@ func (resourceHandler *ResourceHandler) getHistory(responseWriter http.ResponseW
 		Status:  true,
 	}
 
-	response, err := json.MarshalIndent(historyResponce, "", "\t")
+	response, err := json.MarshalIndent(historyResponse, "", "\t")
 
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
@@ -301,7 +302,7 @@ func (resourceHandler *ResourceHandler) postHistory(responseWriter http.Response
 		//statusCode = http.Status - подобрать верный статус
 	}
 
-	var historyResponce = models.ResponseStrucrt{
+	var historyResponse = models.ResponseStrucrt{
 		Links: models.ListOfReferens{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
@@ -313,7 +314,7 @@ func (resourceHandler *ResourceHandler) postHistory(responseWriter http.Response
 		Status:  true,
 	}
 
-	response, err := json.MarshalIndent(historyResponce, "", "\t")
+	response, err := json.MarshalIndent(historyResponse, "", "\t")
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -364,7 +365,7 @@ func (resourceHandler *ResourceHandler) postProject(responseWriter http.Response
 		//statusCode = http.Status - подобрать верный статус
 	}
 
-	var projectResponce = models.ResponseStrucrt{
+	var projectResponse = models.ResponseStrucrt{
 		Links: models.ListOfReferens{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
@@ -376,7 +377,7 @@ func (resourceHandler *ResourceHandler) postProject(responseWriter http.Response
 		Status:  true,
 	}
 
-	response, err := json.MarshalIndent(projectResponce, "", "\t")
+	response, err := json.MarshalIndent(projectResponse, "", "\t")
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)

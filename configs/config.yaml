@@ -4,25 +4,29 @@ issueInOneRequest: 100
 maxTimeSleep: 8000
 minTimeSleep: 50
 
-hostDB: localhost
-portDB: 5432 
-nameDB: testdb
-passwordDB: pgpwd
-userDB: pguser
+database:
+ hostDB: localhost
+ portDB: 5432
+ nameDB: testdb
+ passwordDB: pgpwd
+ userDB: pguser
 
-hostServer: localhost
-portServer: 8080
+apiServer:
+ hostServer: localhost
+ portServer: 8080
+ apiPref: /api/v1
 
-apiPref: /api/v1
+resource:
+ resourceHost: localhost
+ resourcePort: 8001
+ resourcePref: /resource
 
-resourceHost: localhost
-resourcePort: 8001
-resourcePref: /resource 
+analytics:
+ analyticHost: localhost
+ analyticPort: 8002
+ analyticPref: /graph
 
-analyticHost: localhost
-analyticPort: 8002
-analyticPref: /graph 
-
-connectorHost: localhost
-connectorPort: 8003
-connectorPref: /connector
+connector:
+ connectorHost: localhost
+ connectorPort: 8003
+ connectorPref: /connector
