@@ -36,7 +36,7 @@ func CreateNewApiServer() *ApiServer {
 func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != "POST" {
 		server.logger.Log(logger.ERROR, "Incorrect")
-		responseWriter.WriteHeader(400)
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -44,7 +44,7 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 
 	if len(projectName) == 0 {
 		server.logger.Log(logger.ERROR, "Incorrect")
-		responseWriter.WriteHeader(400)
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -54,16 +54,15 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 	responseWriter.Write(response)
 	if err != nil {
 		server.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(400)
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	transformewIssues := server.transformer.TransformData(issues)
-	server.databasePusher.PushIssue(transformewIssues)
+	transformedIssues := server.transformer.TransformData(issues)
+	server.databasePusher.PushIssue(transformedIssues)
 }
 
 func (server *ApiServer) project(responseWriter http.ResponseWriter, request *http.Request) {
-	fmt.Print("project work")
 	if request.Method != "GET" {
 		server.logger.Log(logger.ERROR, "Incorrect")
 		return
@@ -73,22 +72,20 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 
 	responseWriter.Header().Set("Content-Type", "application/json")
 
-	server.logger.Log(logger.INFO, "RETURN PROJECTS")
-
-	projets, pages, err := server.jiraConnector.GetProjects(limit, page, search)
+	projects, pages, err := server.jiraConnector.GetProjects(limit, page, search)
 	if err != nil {
 		server.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(400)
+		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	var issueResponce = models.ResponseStrucrt{
+	var issueResponse = models.ResponseStrucrt{
 		Links: models.ListOfReferens{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
 			Histories: models.Link{Href: "/api/v1/histories"},
 			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", 1)},
 		},
-		Info:    projets,
+		Info:    projects,
 		Message: "Hello from connector",
 		Name:    "",
 		PageInfo: models.Page{
@@ -98,8 +95,13 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 		},
 		Status: true,
 	}
-	response, err := json.MarshalIndent(issueResponce, "", "\t")
-	responseWriter.Write(response)
+	response, _ := json.MarshalIndent(issueResponse, "", "\t")
+	_, err = responseWriter.Write(response)
+	if err != nil {
+		responseWriter.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 }
 
 func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
@@ -109,7 +111,6 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
 
 	limit := request.URL.Query().Get("limit")
 	if len(limit) != 0 {
-		fmt.Println("linit: " + limit + " !")
 		defaultLimit, _ = strconv.Atoi(limit) //нужно ли обрабатывать ошибки
 	}
 
@@ -137,6 +138,6 @@ func (server *ApiServer) StartServer() {
 }
 
 func (server *ApiServer) handlers() {
-	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
-	http.HandleFunc("/api/v1/connector/projects", server.project)
+	http.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetConnectorPref()+"/updateProject", server.updateProject)
+	http.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetConnectorPref()+"/projects", server.project)
 }

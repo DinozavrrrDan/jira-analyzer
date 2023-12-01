@@ -27,10 +27,10 @@ func CreateNewLogger() *JiraLogger {
 
 	logger.SetLevel(logrus.TraceLevel) //Trace level - самый объемный по информации
 
-	logs, _ := os.OpenFile("../../logs/logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	errors, _ := os.OpenFile("../../logs/err_logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	logs, _ := os.OpenFile("././logs/logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	errors, _ := os.OpenFile("././logs/err_logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 
-	logFile := io.MultiWriter(os.Stdout, logs)
+	logFile := io.MultiWriter(logs)
 	errFile := io.MultiWriter(os.Stdout, errors)
 
 	return &JiraLogger{
@@ -45,7 +45,7 @@ func (JLogger *JiraLogger) Log(logLevel LogLevel, logMessage string) {
 	if logLevel == DEBUG {
 		JLogger.logger.Debug(logMessage)
 	} else if logLevel == INFO {
-		JLogger.logger.Info(logMessage)
+		JLogger.logger.Infoln(logMessage)
 	} else if logLevel == WARNING {
 		JLogger.logger.Warning(logMessage)
 		JLogger.logger.Out = *JLogger.errFile
