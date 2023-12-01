@@ -38,14 +38,18 @@ func CreateNewJiraConnector() *Connector {
 данном параметре limit
 */
 func (connector *Connector) GetProjectIssues(projectName string) ([]models.Issue, error) {
-	isRequestNotDone := true
+	isRequestGompleteSuccsesfully := true
 	timeUntilNewRequest := connector.configReader.GetMinTimeSleep()
 
 	var issues []models.Issue
-	httpClient := &http.Client{}
 
-	for isRequestNotDone && timeUntilNewRequest <= connector.configReader.GetMaxTimeSleep() {
-		fmt.Println("Infinite")
+	fmt.Println("GetProjectIssues1s")
+
+	for isRequestGompleteSuccsesfully && timeUntilNewRequest <= connector.configReader.GetMaxTimeSleep() {
+		httpClient := &http.Client{}
+
+		fmt.Println("GetProjectIssues2s")
+
 		response, err := httpClient.Get(connector.jiraRepositoryUrl + "/rest/api/2/search?jql=project=" +
 			projectName + "&expand=changelog&startAt=0&maxResults=1")
 		if err != nil || response.StatusCode != http.StatusOK {
@@ -70,7 +74,7 @@ func (connector *Connector) GetProjectIssues(projectName string) ([]models.Issue
 			return []models.Issue{}, fmt.Errorf("error: no issues")
 		}
 
-		issues, timeUntilNewRequest, isRequestNotDone = connector.threadsFunc(counterOfIssues,
+		issues, timeUntilNewRequest, isRequestGompleteSuccsesfully = connector.threadsFunc(counterOfIssues,
 			httpClient, projectName, timeUntilNewRequest)
 
 	}
@@ -78,7 +82,7 @@ func (connector *Connector) GetProjectIssues(projectName string) ([]models.Issue
 	if timeUntilNewRequest > connector.configReader.GetMaxTimeSleep() {
 		connector.logger.Log(logger.ERROR, "Error, too much time!")
 
-		return []models.Issue{}, fmt.Errorf("error, too much time")
+		return []models.Issue{}, fmt.Errorf("Error, too much time!")
 	}
 
 	return issues, nil
@@ -91,7 +95,7 @@ func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Cl
 	counterOfThreads := connector.configReader.GetThreadCount()
 	issueInOneRequest := connector.configReader.GetIssusOnOneRequest()
 
-	channelError := make(chan models.Issue)
+	channelErrorr := make(chan models.Issue)
 	waitGroup := sync.WaitGroup{}
 	mutex := sync.Mutex{}
 	isError := false
@@ -102,8 +106,9 @@ func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Cl
 		go func(currentThreadNumber int) {
 			defer waitGroup.Done()
 			select {
-			case <-channelError:
+			case <-channelErrorr:
 				connector.logger.Log(logger.ERROR, "Error while reading issues in thread")
+
 				return
 			default:
 				startIndex := currentThreadNumber*(counterOfIssues/counterOfThreads) + 1
@@ -113,17 +118,17 @@ func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Cl
 					startAt := startIndex + j*issueInOneRequest
 
 					if startAt < counterOfIssues {
-						response, errResponse := httpClient.Get(connector.jiraRepositoryUrl +
+						response, errResponce := httpClient.Get(connector.jiraRepositoryUrl +
 							"/rest/api/2/search?jql=project=" + projectName +
 							"&expand=changelog&startAt=" + strconv.Itoa(startAt) +
 							"&maxResults=" + strconv.Itoa(issueInOneRequest))
 
 						body, errRead := io.ReadAll(response.Body)
 
-						if errRead != nil || errResponse != nil {
+						if errRead != nil || errResponce != nil {
 							isError = true
 
-							close(channelError)
+							close(channelErrorr)
 
 							return
 						}
@@ -140,10 +145,11 @@ func (connector *Connector) threadsFunc(counterOfIssues int, httpClient *http.Cl
 		}(i)
 	}
 	waitGroup.Wait()
-	fmt.Println(isError)
+
 	if isError {
 		timeUntilNewRequest = connector.increaseTimeUntilNewRequest(timeUntilNewRequest, projectName)
 	}
+
 	return issues, timeUntilNewRequest, isError
 }
 

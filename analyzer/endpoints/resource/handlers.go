@@ -267,7 +267,7 @@ func (resourceHandler *ResourceHandler) postIssue(responseWriter http.ResponseWr
 		return
 	}
 
-	responseWriter.WriteHeader(http.StatusOK)
+	responseWriter.WriteHeader(http.StatusCreated)
 }
 
 func (resourceHandler *ResourceHandler) postHistory(responseWriter http.ResponseWriter, request *http.Request) {
@@ -330,7 +330,7 @@ func (resourceHandler *ResourceHandler) postHistory(responseWriter http.Response
 		return
 	}
 
-	responseWriter.WriteHeader(http.StatusOK)
+	responseWriter.WriteHeader(http.StatusCreated)
 }
 
 func (resourceHandler *ResourceHandler) postProject(responseWriter http.ResponseWriter, request *http.Request) {
@@ -391,7 +391,7 @@ func (resourceHandler *ResourceHandler) postProject(responseWriter http.Response
 		return
 	}
 
-	responseWriter.WriteHeader(http.StatusOK)
+	responseWriter.WriteHeader(http.StatusCreated)
 }
 
 func (server *ResourceHandler) handlers(router *mux.Router) {

@@ -51,7 +51,7 @@ func (resourceHandler *ResourceHandler) GetIssueInfo(id int) (models.IssueInfo, 
 }
 
 func (resourceHandler *ResourceHandler) GetHistoryInfo(id int) ([]models.HistoryInfo, error) {
-	historyInfos := []models.HistoryInfo{}
+	var historyInfos []models.HistoryInfo
 
 	rows, err := resourceHandler.database.Query(
 		"SELECT "+

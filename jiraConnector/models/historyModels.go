@@ -1,7 +1,5 @@
 package models
 
-import "time"
-
 type IssueHistories struct {
 	Changelog struct {
 		Histories []History `json:"histories"`
@@ -12,11 +10,12 @@ type History struct {
 	Author struct {
 		Name string `json:"name"`
 	} `json:"author"`
-	ChangeTime    time.Time `json:"changeTime"`
+	ChangeTime    string `json:"created"`
 	StatusChanges []StatusChange
 }
 
 type StatusChange struct {
-	FromStatus string `json:"fromStatus"`
-	ToStatus   string `json:"toStatus"`
+	Field      string `json:"field"`
+	FromStatus string `json:"fromString"`
+	ToStatus   string `json:"toString"`
 }
