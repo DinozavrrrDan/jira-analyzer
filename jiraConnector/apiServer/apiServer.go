@@ -58,7 +58,7 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 		return
 	}
 
-	transformewIssues := server.transformer.TrasformData(issues)
+	transformewIssues := server.transformer.TransformData(issues)
 	server.databasePusher.PushIssue(transformewIssues)
 }
 
