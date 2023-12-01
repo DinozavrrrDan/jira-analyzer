@@ -78,8 +78,8 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	var issueResponse = models.ResponseStrucrt{
-		Links: models.ListOfReferens{
+	var issueResponse = models.ResponseStruct{
+		Links: models.ListOfReferences{
 			Issues:    models.Link{Href: "/api/v1/issues"},
 			Projects:  models.Link{Href: "/api/v1/projects"},
 			Histories: models.Link{Href: "/api/v1/histories"},
