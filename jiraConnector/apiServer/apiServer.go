@@ -142,6 +142,6 @@ func (server *ApiServer) StartServer() {
 }
 
 func (server *ApiServer) handlers() {
-	http.HandleFunc("/api/v1/connector/updateProject", server.updateProject)
-	http.HandleFunc("/api/v1/connector/projects", server.project)
+	http.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetConnectorPref()+"/updateProject", server.updateProject)
+	http.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetConnectorPref()+"/projects", server.project)
 }
