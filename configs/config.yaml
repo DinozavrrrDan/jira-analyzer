@@ -25,3 +25,4 @@ analyticPref: /graph
 
 connectorHost: localhost
 connectorPort: 8003
+connectorPref: /connector
