@@ -24,6 +24,7 @@ type ApiServer struct {
 
 func CreateNewApiServer() *ApiServer {
 	newReader := configReader.CreateNewConfigReader()
+
 	return &ApiServer{
 		configReader:   newReader,
 		logger:         logger.CreateNewLogger(),
@@ -34,9 +35,10 @@ func CreateNewApiServer() *ApiServer {
 }
 
 func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, request *http.Request) {
-	if request.Method != "POST" {
+	if request.Method != http.MethodPost {
 		server.logger.Log(logger.ERROR, "Incorrect")
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
@@ -45,6 +47,7 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 	if len(projectName) == 0 {
 		server.logger.Log(logger.ERROR, "Incorrect")
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
@@ -52,9 +55,11 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 	fmt.Println(issues)
 	response, err := json.MarshalIndent(issues, "", "\t")
 	responseWriter.Write(response)
+
 	if err != nil {
 		server.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
 
@@ -63,8 +68,9 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 }
 
 func (server *ApiServer) project(responseWriter http.ResponseWriter, request *http.Request) {
-	if request.Method != "GET" {
+	if request.Method != http.MethodGet {
 		server.logger.Log(logger.ERROR, "Incorrect")
+
 		return
 	}
 
@@ -76,8 +82,10 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 	if err != nil {
 		server.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
+
 	var issueResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
 			Issues:    models.Link{Href: "/api/v1/issues"},
@@ -95,13 +103,15 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 		},
 		Status: true,
 	}
+
 	response, _ := json.MarshalIndent(issueResponse, "", "\t")
 	_, err = responseWriter.Write(response)
+
 	if err != nil {
 		responseWriter.WriteHeader(http.StatusBadRequest)
+
 		return
 	}
-
 }
 
 func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
@@ -138,6 +148,13 @@ func (server *ApiServer) StartServer() {
 }
 
 func (server *ApiServer) handlers() {
-	http.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetConnectorPref()+"/updateProject", server.updateProject)
-	http.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetConnectorPref()+"/projects", server.project)
+	http.HandleFunc(server.configReader.GetApiPrefix()+
+		server.configReader.GetConnectorPref()+
+		"/updateProject",
+		server.updateProject)
+
+	http.HandleFunc(server.configReader.GetApiPrefix()+
+		server.configReader.GetConnectorPref()+
+		"/projects",
+		server.project)
 }
