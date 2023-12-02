@@ -128,7 +128,8 @@ func (databasePusher *DatabasePusher) getAssigneeId(assignee string) (int, error
 		Scan(&assigneeId)
 
 	if assigneeId == 0 {
-		err = databasePusher.database.QueryRow("INSERT INTO author (name) VALUES($1) RETURNING id", assignee).Scan(&assigneeId)
+		err = databasePusher.database.QueryRow("INSERT INTO author (name) VALUES($1) RETURNING id",
+			assignee).Scan(&assigneeId)
 		if err != nil {
 			return assigneeId, fmt.Errorf("ERROR: %v", err.Error())
 		}
