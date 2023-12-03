@@ -124,11 +124,11 @@ func (databasePusher *DatabasePusher) getAuthorId(authorName string) (int, error
 // getAssigneeId получает id по имени assignee из таблицы author
 func (databasePusher *DatabasePusher) getAssigneeId(assignee string) (int, error) {
 	var assigneeId int
-	err := databasePusher.database.QueryRow("SELECT id FROM author where name = $1", assignee).
+	_ = databasePusher.database.QueryRow("SELECT id FROM author where name = $1", assignee).
 		Scan(&assigneeId)
 
 	if assigneeId == 0 {
-		err = databasePusher.database.QueryRow("INSERT INTO author (name) VALUES($1) RETURNING id", assignee).Scan(&assigneeId)
+		err := databasePusher.database.QueryRow("INSERT INTO author (name) VALUES($1) RETURNING id", assignee).Scan(&assigneeId)
 		if err != nil {
 			return assigneeId, fmt.Errorf("ERROR: %v", err.Error())
 		}
