@@ -13,12 +13,7 @@ import (
 	"Jira-analyzer/common/logger"
 	"Jira-analyzer/jiraConnector/models"
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
-	"strings"
-	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -51,8 +46,6 @@ func CreateNewDatabasePusher() *DatabasePusher {
 }
 
 func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue) {
-
-	httpClient := &http.Client{}
 
 	for _, issue := range issues {
 		projectId, err := databasePusher.getProjectId(issue.Project)
@@ -120,74 +113,5 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 				return
 			}
 		}
-
-		issueId, err := databasePusher.getIssueId(issue.Key)
-
-		if err != nil {
-			databasePusher.logger.Log(logger.ERROR, fmt.Sprintf("ERROR: %v", err.Error()))
-
-			return
-		}
-
-		requestString := databasePusher.configReader.GetJiraUrl() + "/rest/api/2/issue/" + issue.Key + "?expand=changelog"
-
-		response, err := httpClient.Get(requestString)
-		if err != nil {
-			databasePusher.logger.Log(logger.ERROR, fmt.Sprintf("ERROR: %v", err.Error()))
-
-			return
-		}
-
-		body, err := io.ReadAll(response.Body)
-
-		if err != nil {
-			databasePusher.logger.Log(logger.ERROR, fmt.Sprintf("ERROR: %v", err.Error()))
-
-			return
-		}
-
-		var issueHistories models.IssueHistories
-		err = json.Unmarshal(body, &issueHistories)
-
-		if err != nil {
-			databasePusher.logger.Log(logger.ERROR, fmt.Sprintf("ERROR: %v", err.Error()))
-
-			return
-		}
-
-		for _, history := range issueHistories.Changelog.Histories {
-			for _, statusChange := range history.StatusChanges {
-				if strings.Compare(statusChange.Field, "status") == 0 {
-					createdTime, _ := time.Parse("2006-01-02T15:04:05.999-0700", history.ChangeTime)
-
-					if databasePusher.skipStatusChange(issueId, createdTime) {
-						break
-					}
-
-					newAuthorId, _ := databasePusher.getAuthorId(history.Author.Name)
-
-					err := databasePusher.insertInfoIntoStatusChanges(
-						issueId,
-						newAuthorId,
-						createdTime,
-						statusChange.FromStatus,
-						statusChange.ToStatus)
-					if err != nil {
-						databasePusher.logger.Log(logger.ERROR, err.Error())
-
-						return
-					}
-				}
-			}
-		}
 	}
-}
-
-func (databasePusher *DatabasePusher) skipStatusChange(issueId int, createdTime time.Time) bool {
-	var count int
-	_ = databasePusher.database.QueryRow("SELECT COUNT(*) FROM statuschange WHERE issueid=$1 AND changetime=$2",
-		issueId,
-		createdTime).Scan(&count)
-
-	return count != 0
 }
