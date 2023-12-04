@@ -30,8 +30,10 @@ func CreateNewResourceHandler() *ResourceHandler {
 		newReader.GetDatabaseName())
 	newDatabase, err := sql.Open("postgres", sqlInfo)
 	newLogger := logger.CreateNewLogger()
+
 	if err != nil {
 		newLogger.Log(logger.ERROR, err.Error())
+
 		return &ResourceHandler{}
 	}
 
