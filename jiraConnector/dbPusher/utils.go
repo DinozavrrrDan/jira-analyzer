@@ -7,12 +7,7 @@ import (
 
 func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timeSpent int) error {
 
-	stmt, err :=
-		databasePusher.database.Prepare("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)")
-
-	defer stmt.Close()
-
-	_, err = stmt.Exec(
+	err := databasePusher.database.QueryRow("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
 		projectId,
 		authorId,
 		assigneeId,
@@ -25,7 +20,7 @@ func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, 
 		createdTime,
 		closedTime,
 		updatedTime,
-		timeSpent)
+		timeSpent).Err()
 
 	if err != nil {
 		return fmt.Errorf("ERROR: %v", err.Error())
@@ -34,31 +29,9 @@ func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, 
 	return nil
 }
 
-func (databasePusher *DatabasePusher) insertInfoIntoStatusChanges(issueIdId, authorId int, changeTime time.Time, fromStatus, toStatus string) error {
-	stmt, _ :=
-		databasePusher.database.Prepare("INSERT INTO statuschange (issueId, authorId, changeTime, fromStatus, toStatus) VALUES ($1, $2, $3, $4, $5)")
-
-	_, err := stmt.Exec(
-		issueIdId,
-		authorId,
-		changeTime,
-		fromStatus,
-		toStatus)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // updateIssue обвновляет данные issue заданного key в таблицк issues
 func (databasePusher *DatabasePusher) updateIssue(projectID, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timespent int) error {
-	stmt, _ :=
-		databasePusher.database.
-			Prepare("UPDATE issues set projectid = $1, authorid = $2, assigneeid = $3, summary = $4, description = $5, type = $6, priority = $7, status = $8, createdtime = $9, closedtime = $10, updatedtime = $11, timespent = $12 where key = $13")
-
-	_, err := stmt.Exec(
+	err := databasePusher.database.QueryRow("UPDATE issues set projectid = $1, authorid = $2, assigneeid = $3, summary = $4, description = $5, type = $6, priority = $7, status = $8, createdtime = $9, closedtime = $10, updatedtime = $11, timespent = $12 where key = $13",
 		projectID,
 		authorId,
 		assigneeId,
@@ -71,7 +44,7 @@ func (databasePusher *DatabasePusher) updateIssue(projectID, authorId, assigneeI
 		closedTime,
 		updatedTime,
 		timespent,
-		key)
+		key).Err()
 
 	if err != nil {
 		return fmt.Errorf("ERROR: %v", err.Error())
@@ -124,11 +97,12 @@ func (databasePusher *DatabasePusher) getAuthorId(authorName string) (int, error
 // getAssigneeId получает id по имени assignee из таблицы author
 func (databasePusher *DatabasePusher) getAssigneeId(assignee string) (int, error) {
 	var assigneeId int
-	err := databasePusher.database.QueryRow("SELECT id FROM author where name = $1", assignee).
+	_ = databasePusher.database.QueryRow("SELECT id FROM author where name = $1", assignee).
 		Scan(&assigneeId)
 
 	if assigneeId == 0 {
-		err = databasePusher.database.QueryRow("INSERT INTO author (name) VALUES($1) RETURNING id", assignee).Scan(&assigneeId)
+		err := databasePusher.database.QueryRow("INSERT INTO author (name) VALUES($1) RETURNING id",
+			assignee).Scan(&assigneeId)
 		if err != nil {
 			return assigneeId, fmt.Errorf("ERROR: %v", err.Error())
 		}

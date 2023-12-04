@@ -34,7 +34,7 @@ func CreateNewApiServer() *ApiServer {
 }
 
 func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, request *http.Request) {
-	if request.Method != "POST" {
+	if request.Method != http.MethodPost {
 		server.logger.Log(logger.ERROR, "Incorrect")
 		responseWriter.WriteHeader(http.StatusBadRequest)
 		return
@@ -63,7 +63,7 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 }
 
 func (server *ApiServer) project(responseWriter http.ResponseWriter, request *http.Request) {
-	if request.Method != "GET" {
+	if request.Method != http.MethodGet {
 		server.logger.Log(logger.ERROR, "Incorrect")
 		return
 	}
