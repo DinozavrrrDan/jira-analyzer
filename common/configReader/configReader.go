@@ -25,7 +25,7 @@ import (
 
 type ConfigReader struct {
 	viperConfigReader *viper.Viper
-	viperLogger       *logger.JiraLogger
+	viperLogger       *logger.Logger
 }
 
 func CreateNewConfigReader() *ConfigReader {

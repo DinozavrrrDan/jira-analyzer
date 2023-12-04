@@ -16,7 +16,7 @@ import (
 
 type ResourceHandler struct {
 	configReader *configReader.ConfigReader
-	logger       *logger.JiraLogger
+	logger       *logger.Logger
 	database     *sql.DB
 }
 
