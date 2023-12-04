@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type JiraLogger struct {
+type Logger struct {
 	logger  *logrus.Logger
 	logFile *io.Writer
 	errFile *io.Writer
@@ -22,7 +22,7 @@ const (
 	ERROR   LogLevel = 3
 )
 
-func CreateNewLogger() *JiraLogger {
+func CreateNewLogger() *Logger {
 	logger := logrus.New()
 
 	logger.SetLevel(logrus.TraceLevel) //Trace level - самый объемный по информации
@@ -33,14 +33,14 @@ func CreateNewLogger() *JiraLogger {
 	logFile := io.MultiWriter(logs)
 	errFile := io.MultiWriter(os.Stdout, errors)
 
-	return &JiraLogger{
+	return &Logger{
 		logger:  logger,
 		logFile: &logFile,
 		errFile: &errFile,
 	}
 }
 
-func (JLogger *JiraLogger) Log(logLevel LogLevel, logMessage string) {
+func (JLogger *Logger) Log(logLevel LogLevel, logMessage string) {
 	JLogger.logger.Out = *JLogger.logFile
 	if logLevel == DEBUG {
 		JLogger.logger.Debug(logMessage)

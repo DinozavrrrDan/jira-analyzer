@@ -16,7 +16,7 @@ import (
 
 type ApiServer struct {
 	configReader   *configReader.ConfigReader
-	logger         *logger.JiraLogger
+	logger         *logger.Logger
 	jiraConnector  *connector.Connector
 	databasePusher *dbPusher.DatabasePusher
 	transformer    *transformer.Transformer
