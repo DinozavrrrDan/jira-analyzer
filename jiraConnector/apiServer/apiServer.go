@@ -64,7 +64,7 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 	}
 
 	transformedIssues := server.transformer.TransformData(issues)
-	server.databasePusher.PushIssue(transformedIssues)
+	server.databasePusher.PushIssues(transformedIssues)
 }
 
 func (server *ApiServer) project(responseWriter http.ResponseWriter, request *http.Request) {

@@ -33,7 +33,7 @@ func (dataTransformer *Transformer) TransformData(issues []models.Issue) []model
 			CreatedTime: createdTime,
 			ClosedTime:  closedTime,
 			UpdatedTime: updatedTime,
-			Timespent:   int(timeSpent),
+			Timespent:   int64(timeSpent),
 		})
 	}
 	return transformedIssues

@@ -6,7 +6,7 @@ import (
 	"log"
 )
 
-func (analyticServer *AnalyticServer) GraphFive(projectId int) []models.GraphData {
+func (analyticServer *AnalyticServer) GraphFive(projectId int64) []models.GraphData {
 
 	rows, err := analyticServer.database.Query(
 		"SELECT" +
@@ -34,6 +34,7 @@ func (analyticServer *AnalyticServer) GraphFive(projectId int) []models.GraphDat
 
 		err := rows.Scan(&entry.PriorityType, &entry.Amount)
 		if err != nil {
+			analyticServer.logger.Log(logger.ERROR, err.Error())
 			log.Fatal(err)
 		}
 

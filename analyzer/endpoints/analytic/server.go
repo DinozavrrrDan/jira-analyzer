@@ -2,8 +2,9 @@ package analytic
 
 import (
 	"Jira-analyzer/common/logger"
-	"github.com/gorilla/mux"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 func (analyticServer *AnalyticServer) StartServer() {

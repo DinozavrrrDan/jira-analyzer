@@ -6,14 +6,15 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type AnalyticServer struct {
 	configReader *configReader.ConfigReader
-	logger       *logger.JiraLogger
+	logger       *logger.Logger
 	database     *sql.DB
 }
 
@@ -45,7 +46,7 @@ func (analyticServer *AnalyticServer) getGraph(responseWriter http.ResponseWrite
 		return
 	}
 
-	data, err := json.MarshalIndent(analyticServer.GraphFive(projectId), "", "\t")
+	data, err := json.MarshalIndent(analyticServer.GraphFive(int64(projectId)), "", "\t")
 
 	_, err = responseWriter.Write(data)
 	responseWriter.WriteHeader(http.StatusOK)

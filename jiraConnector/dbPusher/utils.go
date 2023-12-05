@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func (databasePusher *DatabasePusher) insertIssue(projectId, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timeSpent int) error {
+func (databasePusher *DatabasePusher) insertIssue(projectId, authorId, assigneeId int64, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timeSpent int64) error {
 
 	_, err := databasePusher.database.Exec(
 		"INSERT INTO issues "+
@@ -36,7 +36,7 @@ func (databasePusher *DatabasePusher) insertIssue(projectId, authorId, assigneeI
 }
 
 // updateIssue обвновляет данные issue заданного key в таблицк issues
-func (databasePusher *DatabasePusher) updateIssue(projectID, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timespent int) error {
+func (databasePusher *DatabasePusher) updateIssue(projectID, authorId, assigneeId int64, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timespent int64) error {
 
 	_, err := databasePusher.database.Exec("UPDATE issues set"+
 		" projectid = ?, authorid = ?, assigneeid = ?,"+
@@ -125,7 +125,7 @@ func (databasePusher *DatabasePusher) getAuthorId(authorName string) (int64, err
 
 		authorId, err := result.LastInsertId()
 		if err != nil {
-			return authorId, fmt.Errorf("getAuthorId: LastInsertId: %v", err.Error())
+			return authorId, fmt.Errorf("getAuthorId: %v", err.Error())
 		}
 	}
 
