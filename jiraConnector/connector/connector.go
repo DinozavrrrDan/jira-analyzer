@@ -17,7 +17,7 @@ import (
 )
 
 type Connector struct {
-	logger            *logger.JiraLogger
+	logger            *logger.Logger
 	configReader      *configReader.ConfigReader
 	jiraRepositoryUrl string
 }
