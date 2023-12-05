@@ -18,6 +18,8 @@ export class DatabaseProjectServices {
 
   // @ts-ignore
   getAll(): Observable<IRequest>{
+    //return this.http.get<IRequest>('http://127.0.0.1:8001/resource/projects/connector/projects?' +
+      //'limit=10&page='+page + '&search=' + searchName)
     // TODO Написать запрос на получение всех проектов
   }
 

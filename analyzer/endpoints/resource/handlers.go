@@ -397,19 +397,19 @@ func (resourceHandler *ResourceHandler) postProject(responseWriter http.Response
 	responseWriter.WriteHeader(http.StatusCreated)
 }
 
-func (server *ResourceHandler) handlers(router *mux.Router) {
+func (server ResourceHandler) handlers(router *mux.Router) {
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"issues/{id:[0-9]+}", server.getIssue).Methods("GET")
+		"/issues/{id:[0-9]+}", server.getIssue).Methods("GET")
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"projects/{id:[0-9]+}", server.getProject).Methods("GET")
+		"/projects/{id:[0-9]+}", server.getProject).Methods("GET")
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"histories/{id:[0-9]+}", server.getHistory).Methods("GET")
+		"/histories/{id:[0-9]+}", server.getHistory).Methods("GET")
 
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"issues/", server.postIssue).Methods("POST")
+		"/issues/", server.postIssue).Methods("POST")
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"projects/", server.postProject).Methods("POST")
+		"/projects/", server.postProject).Methods("POST")
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"histories/", server.postHistory).Methods("POST")
+		"/histories/", server.postHistory).Methods("POST")
 
 }
