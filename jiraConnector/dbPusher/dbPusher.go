@@ -45,7 +45,7 @@ func CreateNewDatabasePusher() *DatabasePusher {
 	}
 }
 
-func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue) {
+func (databasePusher *DatabasePusher) PushIssues(issues []models.TransformedIssue) {
 
 	for _, issue := range issues {
 		projectId, err := databasePusher.getProjectId(issue.Project)
@@ -72,7 +72,12 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 			return
 		}
 
-		exists := databasePusher.checkIssueExists(issue.Key)
+		exists, err := databasePusher.checkIssueExists(issue.Key)
+		if err != nil {
+			databasePusher.logger.Log(logger.ERROR, err.Error())
+
+			return
+		}
 		if exists {
 			err := databasePusher.updateIssue(
 				projectId,
@@ -93,7 +98,7 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 				return
 			}
 		} else {
-			err := databasePusher.insertInfoIntoIssues(
+			err := databasePusher.insertIssue(
 				projectId,
 				authorId,
 				assigneeId,
@@ -108,7 +113,7 @@ func (databasePusher *DatabasePusher) PushIssue(issues []models.TransformedIssue
 				issue.UpdatedTime,
 				issue.Timespent)
 			if err != nil {
-				databasePusher.logger.Log(logger.ERROR, fmt.Sprintf("ERROR: %v", err.Error()))
+				databasePusher.logger.Log(logger.ERROR, err.Error())
 
 				return
 			}
