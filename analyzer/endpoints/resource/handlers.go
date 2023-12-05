@@ -318,13 +318,8 @@ func (server *ResourceHandler) handlers(router *mux.Router) {
 		"/issues/{id:[0-9]+}", server.handleGetIssue).Methods("GET")
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
 		"/projects/{id:[0-9]+}", server.handleGetProject).Methods("GET")
-
-	fmt.Println("HELP")
-
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
 		"/projects", server.handleGetAllProjects).Methods("GET")
-
-	fmt.Println("HELP")
 
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
 		"/issues/", server.handlePostIssue).Methods("POST")

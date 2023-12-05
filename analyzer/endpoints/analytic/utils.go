@@ -3,6 +3,7 @@ package analytic
 import (
 	"Jira-analyzer/analyzer/models"
 	"Jira-analyzer/common/logger"
+	"fmt"
 	"log"
 )
 
@@ -23,7 +24,7 @@ func (analyticServer *AnalyticServer) GraphFive(projectId int64) []models.GraphD
 	)
 
 	if err != nil {
-		analyticServer.logger.Log(logger.ERROR, err.Error())
+		analyticServer.logger.Log(logger.ERROR, fmt.Sprintf("GraphFive: %v", err))
 		return nil
 	}
 
