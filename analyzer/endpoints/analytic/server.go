@@ -2,6 +2,7 @@ package analytic
 
 import (
 	"Jira-analyzer/common/logger"
+	"fmt"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -16,6 +17,7 @@ func (analyticServer *AnalyticServer) StartServer() {
 
 	err := http.ListenAndServe(analyticServer.configReader.GetAnalyticHost()+":"+analyticServer.configReader.GetAnalyticHost(), router)
 	if err != nil {
-		analyticServer.logger.Log(logger.ERROR, "Error while start a server")
+		analyticServer.logger.Log(logger.ERROR, fmt.Sprintf("StartServer: %v", err))
+		panic(fmt.Errorf("StartServer: %v", err))
 	}
 }
