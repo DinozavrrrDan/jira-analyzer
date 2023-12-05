@@ -1,13 +1,19 @@
 package dbPusher
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 )
 
-func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timeSpent int) error {
+func (databasePusher *DatabasePusher) insertIssue(projectId, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timeSpent int) error {
 
-	err := databasePusher.database.QueryRow("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+	_, err := databasePusher.database.Exec(
+		"INSERT INTO issues "+
+			"(projectId, authorId, assigneeId,"+
+			" key, summary, description, type, priority, status,"+
+			" createdTime, closedTime, updatedTime, timeSpent)"+
+			" values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
 		projectId,
 		authorId,
 		assigneeId,
@@ -20,10 +26,10 @@ func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, 
 		createdTime,
 		closedTime,
 		updatedTime,
-		timeSpent).Err()
+		timeSpent)
 
 	if err != nil {
-		return fmt.Errorf("ERROR: %v", err.Error())
+		return fmt.Errorf("insertIssue: %v", err)
 	}
 
 	return nil
@@ -31,7 +37,11 @@ func (databasePusher *DatabasePusher) insertInfoIntoIssues(projectId, authorId, 
 
 // updateIssue обвновляет данные issue заданного key в таблицк issues
 func (databasePusher *DatabasePusher) updateIssue(projectID, authorId, assigneeId int, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timespent int) error {
-	err := databasePusher.database.QueryRow("UPDATE issues set projectid = $1, authorid = $2, assigneeid = $3, summary = $4, description = $5, type = $6, priority = $7, status = $8, createdtime = $9, closedtime = $10, updatedtime = $11, timespent = $12 where key = $13",
+
+	_, err := databasePusher.database.Exec("UPDATE issues set"+
+		" projectid = ?, authorid = ?, assigneeid = ?,"+
+		" summary = ?, description = ?, type = ?, priority = ?, status = ?,"+
+		" createdtime = ?, closedtime = ?, updatedtime = ?, timespent = ? where key = ?",
 		projectID,
 		authorId,
 		assigneeId,
@@ -44,33 +54,51 @@ func (databasePusher *DatabasePusher) updateIssue(projectID, authorId, assigneeI
 		closedTime,
 		updatedTime,
 		timespent,
-		key).Err()
+		key)
 
 	if err != nil {
-		return fmt.Errorf("ERROR: %v", err.Error())
+		return fmt.Errorf("updateIssue: %v", err)
 	}
 
 	return nil
 }
 
 // getIssueId получает id по ключу задачи из таблицы issues
-func (databasePusher *DatabasePusher) getIssueId(issueKey string) (int, error) {
-	var issueID int
-	_ = databasePusher.database.QueryRow("SELECT id FROM issues where key = $1", issueKey).Scan(&issueID)
+func (databasePusher *DatabasePusher) getIssueId(issueKey string) (int64, error) {
+	var issueID int64
+	row := databasePusher.database.QueryRow("SELECT id FROM issues where key = ?", issueKey)
+
+	if err := row.Scan(&issueID); err != nil {
+		if err == sql.ErrNoRows {
+			return issueID, fmt.Errorf("getIssueId %d: no issue", issueID)
+		}
+		return issueID, fmt.Errorf("getIssueId %d: %v", issueID, err)
+	}
 
 	return issueID, nil
 }
 
 // getProjectId получает id по названию проекта из таблицы project
-func (databasePusher *DatabasePusher) getProjectId(projectTitle string) (int, error) {
-	var projectId int
-	_ = databasePusher.database.QueryRow("SELECT id FROM project where title = $1", projectTitle).Scan(&projectId)
+func (databasePusher *DatabasePusher) getProjectId(projectTitle string) (int64, error) {
+	var projectId int64
+	row := databasePusher.database.QueryRow("SELECT id FROM project where title = ?", projectTitle)
+
+	if err := row.Scan(&projectId); err != nil {
+		if err == sql.ErrNoRows {
+			return projectId, fmt.Errorf("getProjectId %d: no project", projectId)
+		}
+		return projectId, fmt.Errorf("getProjectId %d: %v", projectId, err)
+	}
 
 	if projectId == 0 {
-		err := databasePusher.database.QueryRow("INSERT INTO project (title) VALUES($1) RETURNING id", projectTitle).
-			Scan(&projectId)
+		result, err := databasePusher.database.Exec("INSERT INTO project (title) VALUES(?)", projectTitle)
 		if err != nil {
-			return projectId, fmt.Errorf("ERROR: %v", err.Error())
+			return projectId, fmt.Errorf("getProjectId: %v", err.Error())
+		}
+
+		projectId, err := result.LastInsertId()
+		if err != nil {
+			return projectId, fmt.Errorf("getProjectId: %v", err.Error())
 		}
 	}
 
@@ -78,16 +106,26 @@ func (databasePusher *DatabasePusher) getProjectId(projectTitle string) (int, er
 }
 
 // getAuthorId получает id по имени автора из таблицы author
-func (databasePusher *DatabasePusher) getAuthorId(authorName string) (int, error) {
-	var authorId int
-	_ = databasePusher.database.QueryRow("SELECT id FROM author where name = $1", authorName).Scan(&authorId)
+func (databasePusher *DatabasePusher) getAuthorId(authorName string) (int64, error) {
+	var authorId int64
+	row := databasePusher.database.QueryRow("SELECT id FROM author where name = ?", authorName)
+
+	if err := row.Scan(&authorId); err != nil {
+		if err == sql.ErrNoRows {
+			return authorId, fmt.Errorf("getAuthorId %d: no author", authorId)
+		}
+		return authorId, fmt.Errorf("getAuthorId %d: %v", authorId, err)
+	}
 
 	if authorId == 0 {
-		err := databasePusher.database.QueryRow("INSERT INTO author (name) VALUES($1) RETURNING id", authorName).
-			Scan(&authorId)
-
+		result, err := databasePusher.database.Exec("INSERT INTO author (name) VALUES(?)", authorName)
 		if err != nil {
-			return authorId, fmt.Errorf("ERROR: %v", err.Error())
+			return authorId, fmt.Errorf("getAuthorId: %v", err.Error())
+		}
+
+		authorId, err := result.LastInsertId()
+		if err != nil {
+			return authorId, fmt.Errorf("getAuthorId: LastInsertId: %v", err.Error())
 		}
 	}
 
@@ -95,16 +133,26 @@ func (databasePusher *DatabasePusher) getAuthorId(authorName string) (int, error
 }
 
 // getAssigneeId получает id по имени assignee из таблицы author
-func (databasePusher *DatabasePusher) getAssigneeId(assignee string) (int, error) {
-	var assigneeId int
-	_ = databasePusher.database.QueryRow("SELECT id FROM author where name = $1", assignee).
-		Scan(&assigneeId)
+func (databasePusher *DatabasePusher) getAssigneeId(assigneeName string) (int64, error) {
+	var assigneeId int64
+	row := databasePusher.database.QueryRow("SELECT id FROM author where name = ?", assigneeName)
+
+	if err := row.Scan(&assigneeId); err != nil {
+		if err == sql.ErrNoRows {
+			return assigneeId, fmt.Errorf("getAssigneeId %d: no assignee", assigneeId)
+		}
+		return assigneeId, fmt.Errorf("getAssigneeId %d: %v", assigneeId, err)
+	}
 
 	if assigneeId == 0 {
-		err := databasePusher.database.QueryRow("INSERT INTO author (name) VALUES($1) RETURNING id",
-			assignee).Scan(&assigneeId)
+		result, err := databasePusher.database.Exec("INSERT INTO author (name) VALUES(?)", assigneeName)
 		if err != nil {
-			return assigneeId, fmt.Errorf("ERROR: %v", err.Error())
+			return assigneeId, fmt.Errorf("getAssigneeId: %v", err.Error())
+		}
+
+		authorId, err := result.LastInsertId()
+		if err != nil {
+			return authorId, fmt.Errorf("getAssigneeId: LastInsertId: %v", err.Error())
 		}
 	}
 
@@ -112,10 +160,16 @@ func (databasePusher *DatabasePusher) getAssigneeId(assignee string) (int, error
 }
 
 // checkIssueExists проверяет наличие issue заданного issueKey
-func (databasePusher *DatabasePusher) checkIssueExists(issueKey string) bool {
-	var issueId int
+func (databasePusher *DatabasePusher) checkIssueExists(issueKey string) (bool, error) {
+	var issueId int64
+	row := databasePusher.database.QueryRow("SELECT id FROM issues where key = ?", issueKey)
 
-	_ = databasePusher.database.QueryRow("SELECT id FROM issues where key = $1", issueKey).Scan(&issueId)
+	if err := row.Scan(&issueId); err != nil {
+		if err == sql.ErrNoRows {
+			return false, fmt.Errorf("getAssigneeId %d: no assignee", issueId)
+		}
+		return false, fmt.Errorf("getAssigneeId %d: %v", issueId, err)
+	}
 
-	return issueId != 0
+	return issueId != 0, nil
 }
