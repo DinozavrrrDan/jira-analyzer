@@ -46,7 +46,15 @@ func (analyticServer *AnalyticServer) getGraph(responseWriter http.ResponseWrite
 		return
 	}
 
-	data, err := json.MarshalIndent(analyticServer.GraphFive(int64(projectId)), "", "\t")
+	GraphData, err := analyticServer.GraphFive(int64(projectId))
+	if err != nil {
+		return
+	}
+
+	data, err := json.MarshalIndent(GraphData, "", "\t")
+	if err != nil {
+		return
+	}
 
 	_, err = responseWriter.Write(data)
 	responseWriter.WriteHeader(http.StatusOK)

@@ -4,44 +4,38 @@ import (
 	"Jira-analyzer/analyzer/models"
 	"Jira-analyzer/common/logger"
 	"fmt"
-	"log"
 )
 
-func (analyticServer *AnalyticServer) GraphFive(projectId int64) []models.GraphData {
-
-	rows, err := analyticServer.database.Query(
-		"SELECT" +
-			" priority," +
-			" COUNT(*) AS task_count" +
-			" FROM issues" +
-			" GROUP BY priority" +
-			" CASE" +
-			" WHEN priority = 'Critical' THEN 1" +
-			" WHEN priority = 'Blocker' THEN 2" +
-			" WHEN priority = 'Major' THEN 3" +
-			" WHEN priority = 'Minor' THEN 4" +
-			" END;",
-	)
-
-	if err != nil {
-		analyticServer.logger.Log(logger.ERROR, fmt.Sprintf("GraphFive: %v", err))
-		return nil
-	}
-
+func (analyticServer *AnalyticServer) GraphFive(projectId int64) ([]models.GraphData, error) {
 	var result []models.GraphData
 
+	rows, err := analyticServer.database.Query("SELECT" +
+		" priority," +
+		" COUNT(*) AS task_count" +
+		" FROM issues" +
+		" GROUP BY priority" +
+		" CASE" +
+		" WHEN priority = 'Critical' THEN 1" +
+		" WHEN priority = 'Blocker' THEN 2" +
+		" WHEN priority = 'Major' THEN 3" +
+		" WHEN priority = 'Minor' THEN 4" +
+		" END;")
+	if err != nil {
+		return nil, fmt.Errorf("GraphFive: select project info %d: %v", projectId, err)
+	}
+	defer rows.Close()
+
 	for rows.Next() {
-		var entry models.GraphData
-
-		err := rows.Scan(&entry.PriorityType, &entry.Amount)
-		if err != nil {
-			analyticServer.logger.Log(logger.ERROR, err.Error())
-			log.Fatal(err)
+		var projectInfo models.GraphData
+		if err := rows.Scan(&projectInfo.PriorityType, &projectInfo.Amount); err != nil {
+			return nil, fmt.Errorf("GraphFive with projectId %d: %v", projectId, err)
 		}
-
-		result = append(result, entry)
+		result = append(result, projectInfo)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("GraphFive with projectId %d: %v", projectId, err)
 	}
 
 	analyticServer.logger.Log(logger.INFO, "Successfully GraphFive")
-	return result
+	return result, nil
 }
