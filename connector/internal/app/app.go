@@ -7,26 +7,27 @@ import (
 	"connector/pkg/logger"
 )
 
-func Run(configPath string) {
+type App struct {
+	services *service.Services
+	log      *logger.Logger
+	cfg      *config.Config
+}
 
-	log := logger.CreateNewLogger()
-
-	cfg, err := config.CreateNewConfigReader(configPath, log)
-	if err != nil {
-		log.Log(logger.ERROR, "Config err: %s"+err.Error())
-	}
-	//Инициализация репозиториев ?? это с DB
-
-	//Инициализация зависимостей
+func NewApp(cfg *config.Config, log *logger.Logger) *App {
 	deps := service.ServicesDependencies{
-		JiraRepositoryUrl: cfg.GetJiraUrl(),
+		JiraRepositoryUrl: cfg.JiraUrl,
 	}
 
-	//Инициализация сервисов
 	services := service.NewServices(deps, log, cfg)
-	//Cтарт сервера
 
-	apiServer := server.NewApiServer(services, log, cfg)
+	return &App{services: services, log: log, cfg: cfg}
+}
 
+func (app *App) Run() {
+	apiServer := server.NewApiServer(app.services, app.log, app.cfg)
 	apiServer.StartServer()
+}
+
+func (app *App) Close() {
+
 }

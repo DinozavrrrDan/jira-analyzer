@@ -7,20 +7,23 @@ import (
 	"connector/pkg/logger"
 	"encoding/json"
 	"fmt"
+
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type ApiServer struct {
 	connectorSvc   service.Connector
 	transformerSvc service.Transformer
 	dbPusherSvc    service.DatabasePusher
-	cfg            *config.Reader
+	cfg            *config.Config
 	log            *logger.Logger
 }
 
 func NewApiServer(services *service.Services,
-	log *logger.Logger, cfg *config.Reader) *ApiServer {
+	log *logger.Logger, cfg *config.Config) *ApiServer {
 	return &ApiServer{
 		cfg:            cfg,
 		log:            log,
@@ -30,32 +33,22 @@ func NewApiServer(services *service.Services,
 	}
 }
 
-func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodPost {
-		server.log.Log(logger.ERROR, "Incorrect")
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
+func (server *ApiServer) updateProject(writer http.ResponseWriter, request *http.Request) {
 
 	projectName := request.URL.Query().Get("project")
 
 	if len(projectName) == 0 {
-		server.log.Log(logger.ERROR, "Incorrect")
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
+		errorWriter(writer, server, "error: no projects in request.", http.StatusBadRequest)
 		return
 	}
 
 	issues, err := server.connectorSvc.GetProjectIssues(projectName)
-	fmt.Println(issues)
 	response, err := json.MarshalIndent(issues, "", "\t")
-	responseWriter.Write(response)
+
+	writer.Write(response)
 
 	if err != nil {
-		server.log.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
+		errorWriter(writer, server, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -63,22 +56,19 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 	server.dbPusherSvc.PushIssue(transformedIssues)
 }
 
-func (server *ApiServer) project(responseWriter http.ResponseWriter, request *http.Request) {
-	if request.Method != http.MethodGet {
-		server.log.Log(logger.ERROR, "Incorrect")
+func (server *ApiServer) project(writer http.ResponseWriter, request *http.Request) {
 
-		return
+	limit, page, search, err := getProjectParametersFromRequest(request)
+	if err != nil {
+		server.log.Log(logger.WARNING, "error: Incorrect project parameter. Set default value.")
 	}
 
-	limit, page, search := getProjectParametersFromRequest(request)
-
-	responseWriter.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Content-Type", "application/json")
 
 	projects, pages, err := server.connectorSvc.GetProjects(limit, page, search)
-	if err != nil {
-		server.log.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
 
+	if err != nil {
+		errorWriter(writer, server, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -101,56 +91,67 @@ func (server *ApiServer) project(responseWriter http.ResponseWriter, request *ht
 	}
 
 	response, _ := json.MarshalIndent(issueResponse, "", "\t")
-	_, err = responseWriter.Write(response)
+	_, err = writer.Write(response)
 
 	if err != nil {
-		responseWriter.WriteHeader(http.StatusBadRequest)
+		errorWriter(writer, server, err.Error(), http.StatusBadRequest)
 		return
 	}
 }
 
-func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
+func getProjectParametersFromRequest(request *http.Request) (int, int, string, error) {
 	defaultLimit := 20
 	defaultPage := 1
 	defaultSearch := ""
 
-	limit := request.URL.Query().Get("limit")
-	if len(limit) != 0 {
-		defaultLimit, _ = strconv.Atoi(limit) //нужно ли обрабатывать ошибки
+	var err error
+	urlQuery := request.URL.Query()
+
+	if limit, ok := urlQuery["limit"]; ok {
+		defaultLimit, err = strconv.Atoi(limit[0])
+		if err != nil {
+			return defaultLimit, defaultPage, defaultSearch, err
+		}
 	}
 
-	page := request.URL.Query().Get("page")
-	if len(page) != 0 {
-		defaultPage, _ = strconv.Atoi(page)
+	if page, ok := urlQuery["page"]; ok {
+		defaultPage, err = strconv.Atoi(page[0])
+		if err != nil {
+			return defaultLimit, defaultPage, defaultSearch, err
+		}
 	}
 
-	search := request.URL.Query().Get("search")
-	if len(search) != 0 {
-		defaultSearch = search
+	if search, ok := urlQuery["limit"]; ok {
+		defaultSearch = search[0]
 	}
 
-	return defaultLimit, defaultPage, defaultSearch
+	return defaultLimit, defaultPage, defaultSearch, nil
+}
+
+func errorWriter(w http.ResponseWriter, server *ApiServer, message string, status int) {
+	server.log.Log(logger.ERROR, message)
+	w.WriteHeader(status)
 }
 
 func (server *ApiServer) StartServer() {
-	fmt.Println(server.cfg.GetConnectorHost() + ":" + server.cfg.GetConnectorPort())
 	server.log.Log(logger.INFO, "Server start server...")
-	server.handlers()
-	err := http.ListenAndServe(server.cfg.GetConnectorHost()+":"+server.cfg.GetConnectorPort(), nil)
+	router := mux.NewRouter()
+
+	server.handlers(router)
+	err := http.ListenAndServe(server.cfg.ConnectorHost+":"+server.cfg.ConnectorPort, router)
 
 	if err != nil {
-		server.log.Log(logger.ERROR, "Error while start a server")
+		server.log.Log(logger.ERROR, "error while start a server")
 	}
 }
 
-func (server *ApiServer) handlers() {
-	http.HandleFunc(server.cfg.GetApiPrefix()+
-		server.cfg.GetConnectorPref()+
+func (server *ApiServer) handlers(router *mux.Router) {
+	router.HandleFunc(server.cfg.ApiPrefix+
+		server.cfg.ConnectorPrefix+
 		"/updateProject",
-		server.updateProject)
-
-	http.HandleFunc(server.cfg.GetApiPrefix()+
-		server.cfg.GetConnectorPref()+
+		server.updateProject).Methods("POST")
+	router.HandleFunc(server.cfg.ApiPrefix+
+		server.cfg.ConnectorPrefix+
 		"/projects",
-		server.project)
+		server.project).Methods("GET")
 }

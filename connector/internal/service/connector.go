@@ -2,7 +2,7 @@ package service
 
 import (
 	"connector/config"
-	"connector/internal/entities"
+	"connector/internal/models"
 	"connector/pkg/logger"
 	"encoding/json"
 	"fmt"
@@ -17,11 +17,11 @@ import (
 
 type ConnectorService struct {
 	log *logger.Logger
-	cfg *config.Reader
+	cfg *config.Config
 	url string
 }
 
-func NewConnectorService(jiraUrl string, log *logger.Logger, cfg *config.Reader) *ConnectorService {
+func NewConnectorService(jiraUrl string, log *logger.Logger, cfg *config.Config) *ConnectorService {
 	return &ConnectorService{
 		log: log,
 		cfg: cfg,
@@ -34,37 +34,42 @@ func NewConnectorService(jiraUrl string, log *logger.Logger, cfg *config.Reader)
 который содержит массив проектов и общее количество страниц при
 данном параметре limit
 */
-func (connector *ConnectorService) GetProjectIssues(projectName string) ([]entities.Issue, error) {
+
+const jiraRequestPart1 = "/rest/api/2/search?jql=project="
+const jiraRequestPart2 = "&expand=changelog&startAt=0&maxResults=1"
+
+func (connector *ConnectorService) GetProjectIssues(projectName string) ([]models.Issue, error) {
 	isRequestNotCompleted := true
-	timeUntilNewRequest := connector.cfg.GetMinTimeSleep()
+	timeUntilNewRequest := connector.cfg.MinTimeSleep
 
-	var issues []entities.Issue
+	var issues []models.Issue
 
-	for isRequestNotCompleted && timeUntilNewRequest <= connector.cfg.GetMaxTimeSleep() {
+	for isRequestNotCompleted && timeUntilNewRequest <= connector.cfg.MaxTimeSleep {
 		httpClient := &http.Client{}
-		response, err := httpClient.Get(connector.url + "/rest/api/2/search?jql=project=" +
-			projectName + "&expand=changelog&startAt=0&maxResults=1")
+
+		response, err := httpClient.Get(connector.url + jiraRequestPart1 +
+			projectName + jiraRequestPart2)
 
 		if err != nil || response.StatusCode != http.StatusOK {
 			connector.log.Log(logger.ERROR, "Error with get response from: "+projectName)
-			return []entities.Issue{}, fmt.Errorf("error with get response from: " + projectName)
+			return nil, fmt.Errorf("error with get response from: " + projectName)
 		}
 
 		body, err := io.ReadAll(response.Body)
 
-		var issueResponse entities.IssuesList
+		var issueResponse models.IssuesList
 		err = json.Unmarshal(body, &issueResponse)
 
 		if err != nil {
 			connector.log.Log(logger.ERROR, err.Error())
 
-			return []entities.Issue{}, err
+			return nil, err
 		}
 
 		counterOfIssues := issueResponse.IssuesCount
 
 		if counterOfIssues == 0 {
-			return []entities.Issue{}, fmt.Errorf("error: no issues")
+			return nil, fmt.Errorf("error: no issues")
 		}
 
 		issues, timeUntilNewRequest, isRequestNotCompleted = connector.threadsFunc(counterOfIssues,
@@ -72,23 +77,23 @@ func (connector *ConnectorService) GetProjectIssues(projectName string) ([]entit
 
 	}
 
-	if timeUntilNewRequest > connector.cfg.GetMaxTimeSleep() {
-		connector.log.Log(logger.ERROR, "Error, too much time!")
+	if timeUntilNewRequest > connector.cfg.MaxTimeSleep {
+		connector.log.Log(logger.ERROR, "error, too much time!")
 
-		return []entities.Issue{}, fmt.Errorf("error, too much time")
+		return []models.Issue{}, fmt.Errorf("error, too much time")
 	}
 
 	return issues, nil
 }
 
 func (connector *ConnectorService) threadsFunc(counterOfIssues int, httpClient *http.Client,
-	projectName string, timeUntilNewRequest int) ([]entities.Issue, int, bool) {
-	var issues []entities.Issue
+	projectName string, timeUntilNewRequest int) ([]models.Issue, int, bool) {
+	var issues []models.Issue
 
-	counterOfThreads := connector.cfg.GetThreadCount()
-	issueInOneRequest := connector.cfg.GetIssuesOnOneRequest()
+	counterOfThreads := connector.cfg.ThreadCount
+	issueInOneRequest := connector.cfg.IssueInRequest
 
-	channelError := make(chan entities.Issue)
+	channelError := make(chan struct{})
 	waitGroup := sync.WaitGroup{}
 	mutex := sync.Mutex{}
 	isError := false
@@ -126,7 +131,7 @@ func (connector *ConnectorService) threadsFunc(counterOfIssues int, httpClient *
 							return
 						}
 
-						var issueResponse entities.IssuesList
+						var issueResponse models.IssuesList
 						_ = json.Unmarshal(body, &issueResponse)
 
 						mutex.Lock()
@@ -164,7 +169,7 @@ func (connector *ConnectorService) increaseTimeUntilNewRequest(timeUntilNewReque
 вернуть
 Параметр search - фильтр, который накладывается на название и ключ
 */
-func (connector *ConnectorService) GetProjects(limit int, page int, search string) ([]entities.Project, entities.Page, error) {
+func (connector *ConnectorService) GetProjects(limit int, page int, search string) ([]models.Project, models.Page, error) {
 	httpClient := &http.Client{}
 
 	response, err := httpClient.Get(connector.url + "/rest/api/2/project")
@@ -172,7 +177,7 @@ func (connector *ConnectorService) GetProjects(limit int, page int, search strin
 	if err != nil || response.StatusCode != http.StatusOK {
 		connector.log.Log(logger.ERROR, "Error with get response from about projects ")
 
-		return []entities.Project{}, entities.Page{}, err
+		return []models.Project{}, models.Page{}, err
 	}
 
 	body, err := io.ReadAll(response.Body)
@@ -180,19 +185,19 @@ func (connector *ConnectorService) GetProjects(limit int, page int, search strin
 	if err != nil {
 		connector.log.Log(logger.ERROR, err.Error())
 
-		return []entities.Project{}, entities.Page{}, err
+		return []models.Project{}, models.Page{}, err
 	}
 
-	var jiraProjects []entities.JiraProject
+	var jiraProjects []models.JiraProject
 	err = json.Unmarshal(body, &jiraProjects) //получаем информацию через сериализацию
 
 	if err != nil {
 		connector.log.Log(logger.ERROR, err.Error())
 
-		return []entities.Project{}, entities.Page{}, err
+		return []models.Project{}, models.Page{}, err
 	}
 
-	var projects []entities.Project
+	var projects []models.Project
 
 	counterOfProjects := 0
 
@@ -201,7 +206,7 @@ func (connector *ConnectorService) GetProjects(limit int, page int, search strin
 		if filterBySearch(element.Name, search) {
 			counterOfProjects++
 
-			projects = append(projects, entities.Project{
+			projects = append(projects, models.Project{
 				Existence: false,
 				Id:        0,
 				Name:      element.Name,
@@ -221,7 +226,7 @@ func (connector *ConnectorService) GetProjects(limit int, page int, search strin
 	}
 
 	return projects[startIndexOfProject:endIndexOfProject],
-		entities.Page{
+		models.Page{
 			CurrentPageNumber:  page,
 			TotalPageCount:     counterOfProjects / limit,
 			TotalProjectsCount: counterOfProjects,

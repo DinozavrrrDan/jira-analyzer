@@ -10,7 +10,7 @@ package service
 
 import (
 	"connector/config"
-	"connector/internal/entities"
+	"connector/internal/models"
 	"connector/pkg/logger"
 	"database/sql"
 	"fmt"
@@ -19,18 +19,18 @@ import (
 )
 
 type DatabasePusherService struct {
-	cfg      *config.Reader
+	cfg      *config.Config
 	log      *logger.Logger
 	database *sql.DB
 }
 
-func NewDatabasePusher(log *logger.Logger, cfg *config.Reader) *DatabasePusherService {
+func NewDatabasePusher(log *logger.Logger, cfg *config.Config) *DatabasePusherService {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		cfg.GetHostDB(),
-		cfg.GetPortDB(),
-		cfg.GetUserDb(),
-		cfg.GetPasswordDB(),
-		cfg.GetDatabaseName())
+		cfg.HostDB,
+		cfg.PortDB,
+		cfg.UserDB,
+		cfg.PasswordDB,
+		cfg.NameDB)
 	newDatabase, err := sql.Open("postgres", psqlInfo)
 
 	if err != nil {
@@ -44,7 +44,7 @@ func NewDatabasePusher(log *logger.Logger, cfg *config.Reader) *DatabasePusherSe
 	}
 }
 
-func (databasePusher *DatabasePusherService) PushIssue(issues []entities.TransformedIssue) {
+func (databasePusher *DatabasePusherService) PushIssue(issues []models.TransformedIssue) {
 
 	for _, issue := range issues {
 		projectId, err := databasePusher.getProjectId(issue.Project)

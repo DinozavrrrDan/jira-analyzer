@@ -2,21 +2,21 @@ package service
 
 import (
 	"connector/config"
-	"connector/internal/entities"
+	"connector/internal/models"
 	"connector/pkg/logger"
 )
 
 type Connector interface {
-	GetProjectIssues(projectName string) ([]entities.Issue, error)
-	GetProjects(limit int, page int, search string) ([]entities.Project, entities.Page, error)
+	GetProjectIssues(projectName string) ([]models.Issue, error)
+	GetProjects(limit int, page int, search string) ([]models.Project, models.Page, error)
 }
 
 type Transformer interface {
-	TransformData(issues []entities.Issue) []entities.TransformedIssue
+	TransformData(issues []models.Issue) []models.TransformedIssue
 }
 
 type DatabasePusher interface {
-	PushIssue(issues []entities.TransformedIssue)
+	PushIssue(issues []models.TransformedIssue)
 }
 
 type Services struct {
@@ -29,7 +29,7 @@ type ServicesDependencies struct {
 	JiraRepositoryUrl string
 }
 
-func NewServices(deps ServicesDependencies, log *logger.Logger, cfg *config.Reader) *Services {
+func NewServices(deps ServicesDependencies, log *logger.Logger, cfg *config.Config) *Services {
 	return &Services{
 		Connector:      NewConnectorService(deps.JiraRepositoryUrl, log, cfg),
 		Transformer:    NewTransformerService(),

@@ -27,8 +27,8 @@ func CreateNewLogger() *Logger {
 
 	logger.SetLevel(logrus.TraceLevel) //Trace level - самый объемный по информации
 
-	logs, _ := os.OpenFile("../../../logs/logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	errors, _ := os.OpenFile("../../../logs/err_logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	logs, _ := os.OpenFile("./././logs/logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	errors, _ := os.OpenFile("./././logs/err_logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 
 	logFile := io.MultiWriter(logs)
 	errFile := io.MultiWriter(os.Stdout, errors)
@@ -40,19 +40,19 @@ func CreateNewLogger() *Logger {
 	}
 }
 
-func (JLogger *Logger) Log(logLevel LogLevel, logMessage string) {
-	JLogger.logger.Out = *JLogger.logFile
+func (log *Logger) Log(logLevel LogLevel, logMessage string) {
+	log.logger.Out = *log.logFile
 	if logLevel == DEBUG {
-		JLogger.logger.Debug(logMessage)
+		log.logger.Debug(logMessage)
 	} else if logLevel == INFO {
-		JLogger.logger.Infoln(logMessage)
+		log.logger.Infoln(logMessage)
 	} else if logLevel == WARNING {
-		JLogger.logger.Warning(logMessage)
-		JLogger.logger.Out = *JLogger.errFile
-		JLogger.logger.Warning(logMessage)
+		log.logger.Warning(logMessage)
+		log.logger.Out = *log.errFile
+		log.logger.Warning(logMessage)
 	} else if logLevel == ERROR {
-		JLogger.logger.Error(logLevel)
-		JLogger.logger.Out = *JLogger.errFile
-		JLogger.logger.Error(logLevel)
+		log.logger.Error(logLevel)
+		log.logger.Out = *log.errFile
+		log.logger.Error(logLevel)
 	}
 }

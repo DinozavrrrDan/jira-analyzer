@@ -1,4 +1,4 @@
-package entities
+package models
 
 type IssuesList struct {
 	IssuesCount int     `json:"total"`
