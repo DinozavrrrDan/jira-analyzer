@@ -313,6 +313,34 @@ func (resourceHandler *ResourceHandler) handlePostProject(responseWriter http.Re
 	responseWriter.WriteHeader(http.StatusCreated)
 }
 
+func (resourceHandler *ResourceHandler) handleDeleteProject(responseWriter http.ResponseWriter, request *http.Request) {
+	body, err := io.ReadAll(request.Body)
+	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	var projectInfo models.ProjectInfo
+	err = json.Unmarshal(body, &projectInfo)
+
+	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	_, err = resourceHandler.deleteProject(projectInfo)
+	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
+	}
+
+	responseWriter.WriteHeader(http.StatusOK)
+}
+
 func (server *ResourceHandler) handlers(router *mux.Router) {
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
 		"/issues/{id:[0-9]+}", server.handleGetIssue).Methods("GET")
@@ -325,4 +353,7 @@ func (server *ResourceHandler) handlers(router *mux.Router) {
 		"/issues/", server.handlePostIssue).Methods("POST")
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
 		"/projects/", server.handlePostProject).Methods("POST")
+
+	//router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
+	//"/projects/", server.handleDeleteProject).Methods("DELETE")
 }

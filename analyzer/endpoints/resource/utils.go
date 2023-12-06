@@ -100,6 +100,23 @@ func (resourceHandler *ResourceHandler) insertProject(projectInfo models.Project
 	return projectId, nil
 }
 
+func (resourceHandler *ResourceHandler) deleteProject(projectInfo models.ProjectInfo) (int64, error) {
+	var projectId int64
+
+	result, err := resourceHandler.database.Exec("DELETE FROM project WHERE title=?", projectInfo.Title)
+	if err != nil {
+		return 0, fmt.Errorf("deleteProject: %v", err)
+	}
+	projectId, err = result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("deleteProject: %v", err)
+	}
+
+	resourceHandler.logger.Log(logger.INFO, "deleteProject successfully")
+
+	return projectId, nil
+}
+
 func (resourceHandler *ResourceHandler) insertIssue(issueInfo models.IssueInfo) (int64, error) {
 	var issueId, authorId, assigneeId int64
 
