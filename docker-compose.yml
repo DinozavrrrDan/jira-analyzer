@@ -1,56 +1,39 @@
 version: "3.9"
 
 services:
-  postresql:
-    image: postgres:16-alpine3.18
-    container_name: psql
+  postgres:
+    container_name: postgres
+    image: postgres
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_DB: testdb
-      POSTGRES_USER: pguser
-      POSTGRES_PASSWORD: pgpwd
-      PGDATA: "/var/lib/postgresql/data/pgdata"
-    volumes:
-      - testdb-data:/var/lib/postgresql/data
-    networks:
-      - ps
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U habrpguser -d habrdb" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 5G
 
-  pgadmin:
-    container_name: pgadmin_container
-    image: dpage/pgadmin4:7.2
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "habrpguser@habr.com"
-      PGADMIN_DEFAULT_PASSWORD: "pgadminpwd4habr"
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    volumes:
-       - pgadmin-data:/var/lib/pgadmin
+  backend:
+    container_name: backend
+    build: .
     ports:
-      - "5050:80"
-    restart: unless-stopped
-    deploy:
-       resources:
-        limits:
-           cpus: '0.5'
-           memory: 1G
-    networks:
+      - "${HTTP_PORT}:${HTTP_PORT}"
+    depends_on:
       - postgres
-volumes:
-  testdb-data:
-  pgadmin-data:
+    restart: unless-stopped
 
-networks:
-  postgres:
-    driver: bridge
+  connector:
+    container_name: connector
+    build: .
+    ports:
+      - "${HTTP_PORT}:${HTTP_PORT}"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  web:
+    container_name: web
+    build: .
+    ports:
+      - "${HTTP_PORT}:${HTTP_PORT}"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  pg-data:
