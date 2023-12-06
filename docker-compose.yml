@@ -1,39 +1,48 @@
 version: "3.9"
 
 services:
-  postgres:
-    container_name: postgres
-    image: postgres
+  app-db:
+    container_name: app-db
+    image: postgres:16-alpine3.18
+    environment:
+      POSTGRES_DB: testdb
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: pgpwd
+      PGDATA: "/var/lib/postgresql/data/pgdata"
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     restart: unless-stopped
 
-  backend:
+  app-backend:
     container_name: backend
     build: .
+    env_file:
+      - .env
     ports:
       - "${HTTP_PORT}:${HTTP_PORT}"
     depends_on:
       - postgres
     restart: unless-stopped
 
-  connector:
+  app-connector:
     container_name: connector
     build: .
+    env_file:
+      - .env
     ports:
       - "${HTTP_PORT}:${HTTP_PORT}"
     depends_on:
       - postgres
     restart: unless-stopped
 
-  web:
+  app-web:
     container_name: web
-    build: .
-    ports:
-      - "${HTTP_PORT}:${HTTP_PORT}"
-    depends_on:
-      - postgres
-    restart: unless-stopped
 
 volumes:
-  pg-data:
+  testdb-data:
