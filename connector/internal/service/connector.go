@@ -1,11 +1,11 @@
 package service
 
 import (
-	"connector/config"
-	"connector/internal/models"
-	"connector/pkg/logger"
 	"encoding/json"
 	"fmt"
+	"github.com/DinozvrrDan/jira-analyzer/connector/config"
+	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
+	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
 	"io"
 	"math"
 	"net/http"
@@ -40,11 +40,11 @@ const jiraRequestPart2 = "&expand=changelog&startAt=0&maxResults=1"
 
 func (connector *ConnectorService) GetProjectIssues(projectName string) ([]models.Issue, error) {
 	isRequestNotCompleted := true
-	timeUntilNewRequest := connector.cfg.MinTimeSleep
+	timeUntilNewRequest := connector.cfg.Connector.MinTimeSleep
 
 	var issues []models.Issue
 
-	for isRequestNotCompleted && timeUntilNewRequest <= connector.cfg.MaxTimeSleep {
+	for isRequestNotCompleted && timeUntilNewRequest <= connector.cfg.Connector.MaxTimeSleep {
 		httpClient := &http.Client{}
 
 		response, err := httpClient.Get(connector.url + jiraRequestPart1 +
@@ -77,7 +77,7 @@ func (connector *ConnectorService) GetProjectIssues(projectName string) ([]model
 
 	}
 
-	if timeUntilNewRequest > connector.cfg.MaxTimeSleep {
+	if timeUntilNewRequest > connector.cfg.Connector.MaxTimeSleep {
 		connector.log.Log(logger.ERROR, "error, too much time!")
 
 		return []models.Issue{}, fmt.Errorf("error, too much time")
@@ -90,8 +90,8 @@ func (connector *ConnectorService) threadsFunc(counterOfIssues int, httpClient *
 	projectName string, timeUntilNewRequest int) ([]models.Issue, int, bool) {
 	var issues []models.Issue
 
-	counterOfThreads := connector.cfg.ThreadCount
-	issueInOneRequest := connector.cfg.IssueInRequest
+	counterOfThreads := connector.cfg.Connector.ThreadCount
+	issueInOneRequest := connector.cfg.Connector.IssueInRequest
 
 	channelError := make(chan struct{})
 	waitGroup := sync.WaitGroup{}

@@ -7,9 +7,9 @@ import (
 )
 
 type Config struct {
-	Connector `yaml:"connector"`
-	DB        `yaml:"database"`
-	HTTP      `yaml:"http"`
+	Connector Connector `yaml:"connector"`
+	DB        DB        `yaml:"database"`
+	Server    Server    `yaml:"server"`
 }
 
 type Connector struct {
@@ -28,9 +28,9 @@ type DB struct {
 	UserDB     string `yaml:"user_db"`
 }
 
-type HTTP struct {
-	ApiServer     `yaml:"api_server"`
-	ConnectorHTTP `yaml:"connector_http"`
+type Server struct {
+	ApiServer     ApiServer     `yaml:"api_server"`
+	ConnectorHTTP ConnectorHTTP `yaml:"connector_http"`
 }
 
 type ApiServer struct {

@@ -1,4 +1,4 @@
-module Jira-analyzer
+module github.com/DinozvrrDan/jira-analyzer
 
 go 1.21
 

@@ -1,7 +1,7 @@
 package service
 
 import (
-	"connector/internal/models"
+	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
 	"time"
 )
 

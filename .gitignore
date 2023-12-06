@@ -1,2 +1,1 @@
-logs/*.log
-connector/logs/*.log
+*.log

@@ -1,31 +1,24 @@
 package server
 
 import (
-	"connector/api"
-	"connector/config"
-	"connector/internal/service"
-	"connector/pkg/logger"
 	"encoding/json"
 	"fmt"
-
+	"github.com/DinozvrrDan/jira-analyzer/connector/api"
+	"github.com/DinozvrrDan/jira-analyzer/connector/internal/service"
+	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
 	"net/http"
 	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
-type ApiServer struct {
+type Handler struct {
 	connectorSvc   service.Connector
 	transformerSvc service.Transformer
 	dbPusherSvc    service.DatabasePusher
-	cfg            *config.Config
 	log            *logger.Logger
 }
 
-func NewApiServer(services *service.Services,
-	log *logger.Logger, cfg *config.Config) *ApiServer {
-	return &ApiServer{
-		cfg:            cfg,
+func NewHandler(services *service.Services, log *logger.Logger) *Handler {
+	return &Handler{
 		log:            log,
 		connectorSvc:   services.Connector,
 		transformerSvc: services.Transformer,
@@ -33,42 +26,42 @@ func NewApiServer(services *service.Services,
 	}
 }
 
-func (server *ApiServer) updateProject(writer http.ResponseWriter, request *http.Request) {
+func (handler *Handler) UpdateProject(writer http.ResponseWriter, request *http.Request) {
 
-	projectName := request.URL.Query().Get("project")
+	projectName := request.URL.Query().Get("getProjects")
 
 	if len(projectName) == 0 {
-		errorWriter(writer, server, "error: no projects in request.", http.StatusBadRequest)
+		errorWriter(writer, handler.log, "error: no projects in request.", http.StatusBadRequest)
 		return
 	}
 
-	issues, err := server.connectorSvc.GetProjectIssues(projectName)
+	issues, err := handler.connectorSvc.GetProjectIssues(projectName)
 	response, err := json.MarshalIndent(issues, "", "\t")
 
 	writer.Write(response)
 
 	if err != nil {
-		errorWriter(writer, server, err.Error(), http.StatusBadRequest)
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	transformedIssues := server.transformerSvc.TransformData(issues)
-	server.dbPusherSvc.PushIssue(transformedIssues)
+	transformedIssues := handler.transformerSvc.TransformData(issues)
+	handler.dbPusherSvc.PushIssue(transformedIssues)
 }
 
-func (server *ApiServer) project(writer http.ResponseWriter, request *http.Request) {
+func (handler *Handler) GetProjects(writer http.ResponseWriter, request *http.Request) {
 
 	limit, page, search, err := getProjectParametersFromRequest(request)
 	if err != nil {
-		server.log.Log(logger.WARNING, "error: Incorrect project parameter. Set default value.")
+		handler.log.Log(logger.WARNING, "error: Incorrect getProjects parameter. Set default value.")
 	}
 
 	writer.Header().Set("Content-Type", "application/json")
 
-	projects, pages, err := server.connectorSvc.GetProjects(limit, page, search)
+	projects, pages, err := handler.connectorSvc.GetProjects(limit, page, search)
 
 	if err != nil {
-		errorWriter(writer, server, err.Error(), http.StatusBadRequest)
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -94,7 +87,7 @@ func (server *ApiServer) project(writer http.ResponseWriter, request *http.Reque
 	_, err = writer.Write(response)
 
 	if err != nil {
-		errorWriter(writer, server, err.Error(), http.StatusBadRequest)
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
 }
@@ -126,32 +119,4 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string, e
 	}
 
 	return defaultLimit, defaultPage, defaultSearch, nil
-}
-
-func errorWriter(w http.ResponseWriter, server *ApiServer, message string, status int) {
-	server.log.Log(logger.ERROR, message)
-	w.WriteHeader(status)
-}
-
-func (server *ApiServer) StartServer() {
-	server.log.Log(logger.INFO, "Server start server...")
-	router := mux.NewRouter()
-
-	server.handlers(router)
-	err := http.ListenAndServe(server.cfg.ConnectorHost+":"+server.cfg.ConnectorPort, router)
-
-	if err != nil {
-		server.log.Log(logger.ERROR, "error while start a server")
-	}
-}
-
-func (server *ApiServer) handlers(router *mux.Router) {
-	router.HandleFunc(server.cfg.ApiPrefix+
-		server.cfg.ConnectorPrefix+
-		"/updateProject",
-		server.updateProject).Methods("POST")
-	router.HandleFunc(server.cfg.ApiPrefix+
-		server.cfg.ConnectorPrefix+
-		"/projects",
-		server.project).Methods("GET")
 }

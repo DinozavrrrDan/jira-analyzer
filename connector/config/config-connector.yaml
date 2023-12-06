@@ -12,7 +12,7 @@ database:
   password_db: pgpwd
   user_db: pguser
 
-http:
+server:
   api_server:
     host_server: localhost
     port_server: 8080

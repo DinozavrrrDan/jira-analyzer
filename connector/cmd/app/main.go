@@ -1,10 +1,10 @@
 package main
 
 import (
-	"connector/config"
-	"connector/internal/app"
-	"connector/pkg/logger"
 	"flag"
+	"github.com/DinozvrrDan/jira-analyzer/connector/config"
+	"github.com/DinozvrrDan/jira-analyzer/connector/internal/app"
+	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
 )
 
 func main() {
@@ -19,5 +19,7 @@ func main() {
 	}
 
 	newApp := app.NewApp(cfg, log)
+
+	defer newApp.Close()
 	newApp.Run()
 }

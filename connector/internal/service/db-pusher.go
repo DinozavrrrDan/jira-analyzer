@@ -9,11 +9,11 @@ package service
 */
 
 import (
-	"connector/config"
-	"connector/internal/models"
-	"connector/pkg/logger"
 	"database/sql"
 	"fmt"
+	"github.com/DinozvrrDan/jira-analyzer/connector/config"
+	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
+	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
 
 	_ "github.com/lib/pq"
 )
@@ -26,11 +26,11 @@ type DatabasePusherService struct {
 
 func NewDatabasePusher(log *logger.Logger, cfg *config.Config) *DatabasePusherService {
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		cfg.HostDB,
-		cfg.PortDB,
-		cfg.UserDB,
-		cfg.PasswordDB,
-		cfg.NameDB)
+		cfg.DB.HostDB,
+		cfg.DB.PortDB,
+		cfg.DB.UserDB,
+		cfg.DB.PasswordDB,
+		cfg.DB.NameDB)
 	newDatabase, err := sql.Open("postgres", psqlInfo)
 
 	if err != nil {

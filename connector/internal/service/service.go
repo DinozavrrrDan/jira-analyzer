@@ -1,9 +1,9 @@
 package service
 
 import (
-	"connector/config"
-	"connector/internal/models"
-	"connector/pkg/logger"
+	"github.com/DinozvrrDan/jira-analyzer/connector/config"
+	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
+	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
 )
 
 type Connector interface {
