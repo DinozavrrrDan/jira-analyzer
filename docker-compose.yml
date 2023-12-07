@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   app-backend:
-    container_name: backend
+    container_name: app-backend
     build: .
     env_file:
       - .env
@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
 
   app-connector:
-    container_name: connector
+    container_name: app-connector
     build: .
     env_file:
       - .env
@@ -43,7 +43,7 @@ services:
     restart: unless-stopped
 
   app-web:
-    container_name: web
+    container_name: app-web
 
 volumes:
   testdb-data:
