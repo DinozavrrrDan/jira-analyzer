@@ -16,8 +16,8 @@ func (server *ResourceHandler) StartServer() error {
 	server.handlers(router)
 	err := http.ListenAndServe(server.configReader.GetResourceHost()+":"+server.configReader.GetResourcePort(), router)
 	if err != nil {
-		server.logger.Log(logger.ERROR, fmt.Sprintf("StartServer: %v", err))
-		return fmt.Errorf("StartServer: %v", err)
+		server.logger.Log(logger.ERROR, fmt.Sprintf("StartServer: %w", err))
+		return fmt.Errorf("StartServer: %w", err)
 	}
 
 	return nil

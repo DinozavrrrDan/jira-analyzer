@@ -29,7 +29,7 @@ func (databasePusher *DatabasePusher) insertIssue(projectId, authorId, assigneeI
 		timeSpent)
 
 	if err != nil {
-		return fmt.Errorf("insertIssue: %v", err)
+		return fmt.Errorf("insertIssue: %w", err)
 	}
 
 	return nil
@@ -57,7 +57,7 @@ func (databasePusher *DatabasePusher) updateIssue(projectID, authorId, assigneeI
 		key)
 
 	if err != nil {
-		return fmt.Errorf("updateIssue: %v", err)
+		return fmt.Errorf("updateIssue: %w", err)
 	}
 
 	return nil
@@ -72,7 +72,7 @@ func (databasePusher *DatabasePusher) getIssueId(issueKey string) (int64, error)
 		if err == sql.ErrNoRows {
 			return issueID, fmt.Errorf("getIssueId %d: no issue", issueID)
 		}
-		return issueID, fmt.Errorf("getIssueId %d: %v", issueID, err)
+		return issueID, fmt.Errorf("getIssueId %d: %w", issueID, err)
 	}
 
 	return issueID, nil
@@ -87,18 +87,18 @@ func (databasePusher *DatabasePusher) getProjectId(projectTitle string) (int64, 
 		if err == sql.ErrNoRows {
 			return projectId, fmt.Errorf("getProjectId %d: no project", projectId)
 		}
-		return projectId, fmt.Errorf("getProjectId %d: %v", projectId, err)
+		return projectId, fmt.Errorf("getProjectId %d: %w", projectId, err)
 	}
 
 	if projectId == 0 {
 		result, err := databasePusher.database.Exec("INSERT INTO project (title) VALUES(?)", projectTitle)
 		if err != nil {
-			return projectId, fmt.Errorf("getProjectId: %v", err.Error())
+			return projectId, fmt.Errorf("getProjectId: %w", err.Error())
 		}
 
 		projectId, err := result.LastInsertId()
 		if err != nil {
-			return projectId, fmt.Errorf("getProjectId: %v", err.Error())
+			return projectId, fmt.Errorf("getProjectId: %w", err.Error())
 		}
 	}
 
@@ -114,18 +114,18 @@ func (databasePusher *DatabasePusher) getAuthorId(authorName string) (int64, err
 		if err == sql.ErrNoRows {
 			return authorId, fmt.Errorf("getAuthorId %d: no author", authorId)
 		}
-		return authorId, fmt.Errorf("getAuthorId %d: %v", authorId, err)
+		return authorId, fmt.Errorf("getAuthorId %d: %w", authorId, err)
 	}
 
 	if authorId == 0 {
 		result, err := databasePusher.database.Exec("INSERT INTO author (name) VALUES(?)", authorName)
 		if err != nil {
-			return authorId, fmt.Errorf("getAuthorId: %v", err.Error())
+			return authorId, fmt.Errorf("getAuthorId: %w", err.Error())
 		}
 
 		authorId, err := result.LastInsertId()
 		if err != nil {
-			return authorId, fmt.Errorf("getAuthorId: %v", err.Error())
+			return authorId, fmt.Errorf("getAuthorId: %w", err.Error())
 		}
 	}
 
@@ -141,18 +141,18 @@ func (databasePusher *DatabasePusher) getAssigneeId(assigneeName string) (int64,
 		if err == sql.ErrNoRows {
 			return assigneeId, fmt.Errorf("getAssigneeId %d: no assignee", assigneeId)
 		}
-		return assigneeId, fmt.Errorf("getAssigneeId %d: %v", assigneeId, err)
+		return assigneeId, fmt.Errorf("getAssigneeId %d: %w", assigneeId, err)
 	}
 
 	if assigneeId == 0 {
 		result, err := databasePusher.database.Exec("INSERT INTO author (name) VALUES(?)", assigneeName)
 		if err != nil {
-			return assigneeId, fmt.Errorf("getAssigneeId: %v", err.Error())
+			return assigneeId, fmt.Errorf("getAssigneeId: %w", err.Error())
 		}
 
 		authorId, err := result.LastInsertId()
 		if err != nil {
-			return authorId, fmt.Errorf("getAssigneeId: LastInsertId: %v", err.Error())
+			return authorId, fmt.Errorf("getAssigneeId: LastInsertId: %w", err.Error())
 		}
 	}
 
@@ -168,7 +168,7 @@ func (databasePusher *DatabasePusher) checkIssueExists(issueKey string) (bool, e
 		if err == sql.ErrNoRows {
 			return false, fmt.Errorf("getAssigneeId %d: no assignee", issueId)
 		}
-		return false, fmt.Errorf("getAssigneeId %d: %v", issueId, err)
+		return false, fmt.Errorf("getAssigneeId %d: %w", issueId, err)
 	}
 
 	return issueId != 0, nil

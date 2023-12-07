@@ -135,7 +135,7 @@ func (resourceHandler *ResourceHandler) insertIssue(issueInfo models.IssueInfo) 
 		if err == sql.ErrNoRows {
 			return issueId, fmt.Errorf("InsertIssue: no such assignee %s", issueInfo.Assignee)
 		}
-		return issueId, fmt.Errorf("InsertIssue: %v", err)
+		return issueId, fmt.Errorf("InsertIssue: %w", err)
 	}
 
 	result, err := resourceHandler.database.Exec(
@@ -159,11 +159,11 @@ func (resourceHandler *ResourceHandler) insertIssue(issueInfo models.IssueInfo) 
 		issueInfo.TimeSpent)
 
 	if err != nil {
-		return issueId, fmt.Errorf("insertIssue: %v", err)
+		return issueId, fmt.Errorf("insertIssue: %w", err)
 	}
 	issueId, err = result.LastInsertId()
 	if err != nil {
-		return 0, fmt.Errorf("insertIssue: %v", err)
+		return 0, fmt.Errorf("insertIssue: %w", err)
 	}
 
 	resourceHandler.logger.Log(logger.INFO, "insertIssue successfully")
@@ -172,7 +172,7 @@ func (resourceHandler *ResourceHandler) insertIssue(issueInfo models.IssueInfo) 
 }
 
 func (resourceHandler *ResourceHandler) getAllProjects(limit int) ([]models.ProjectInfo, error) {
-	var projects []models.ProjectInfo
+	result := make([]models.ProjectInfo, 0)
 
 	rows, err := resourceHandler.database.Query(
 		`SELECT 
@@ -190,20 +190,20 @@ func (resourceHandler *ResourceHandler) getAllProjects(limit int) ([]models.Proj
 		limit,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("getAllProjects: %v", err)
+		return nil, fmt.Errorf("getAllProjects: %w", err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var project = models.ProjectInfo{}
 		if err := rows.Scan(&project.ID, &project.Title); err != nil {
-			return projects, fmt.Errorf("getAllProjects: %v", err)
+			return result, fmt.Errorf("getAllProjects: %w", err)
 		}
-		projects = append(projects, project)
+		result = append(result, project)
 	}
 	if err := rows.Err(); err != nil {
-		return projects, fmt.Errorf("albumsByArtist: %v", err)
+		return result, fmt.Errorf("albumsByArtist: %w", err)
 	}
 
-	return projects, nil
+	return result, nil
 }

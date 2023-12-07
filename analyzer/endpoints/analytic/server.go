@@ -17,8 +17,8 @@ func (analyticServer *AnalyticServer) StartServer() error {
 
 	err := http.ListenAndServe(analyticServer.configReader.GetAnalyticHost()+":"+analyticServer.configReader.GetAnalyticHost(), router)
 	if err != nil {
-		analyticServer.logger.Log(logger.ERROR, fmt.Sprintf("StartServer: %v", err))
-		return fmt.Errorf("StartServer: %v", err)
+		analyticServer.logger.Log(logger.ERROR, fmt.Sprintf("StartServer: %w", err))
+		return fmt.Errorf("StartServer: %w", err)
 	}
 
 	return nil

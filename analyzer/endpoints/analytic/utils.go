@@ -16,19 +16,19 @@ func (analyticServer *AnalyticServer) GraphFive(projectId int64) ([]models.Graph
 
 	rows, err := analyticServer.database.Query(PriorityCount)
 	if err != nil {
-		return nil, fmt.Errorf("GraphFive: select project info %d: %v", projectId, err)
+		return nil, fmt.Errorf("GraphFive: select project info %d: %w", projectId, err)
 	}
 	defer rows.Close()
 
 	for rows.Next() {
 		var projectInfo models.GraphData
 		if err := rows.Scan(&projectInfo.PriorityType, &projectInfo.Amount); err != nil {
-			return nil, fmt.Errorf("GraphFive with projectId %d: %v", projectId, err)
+			return nil, fmt.Errorf("GraphFive with projectId %d: %w", projectId, err)
 		}
 		result = append(result, projectInfo)
 	}
 	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("GraphFive with projectId %d: %v", projectId, err)
+		return nil, fmt.Errorf("GraphFive with projectId %d: %w", projectId, err)
 	}
 
 	analyticServer.logger.Log(logger.INFO, "Successfully GraphFive")
