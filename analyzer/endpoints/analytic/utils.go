@@ -10,16 +10,9 @@ func (analyticServer *AnalyticServer) GraphFive(projectId int64) ([]models.Graph
 	var result []models.GraphData
 
 	const PriorityCount = "SELECT " +
-		"CASE " +
-		"WHEN priority = 'Critical' THEN 1 " +
-		"WHEN priority = 'Blocker' THEN 2 " +
-		"WHEN priority = 'Major' THEN 3 " +
-		"WHEN priority = 'Trivial' THEN 4 " +
-		"WHEN priority = 'Minor' THEN 5 " +
-		"END AS priority, " +
+		"priority, COUNT(*) AS task_count " +
 		"FROM issues " +
-		"GROUP BY priority " +
-		"ORDER BY priority "
+		"GROUP BY priority "
 
 	rows, err := analyticServer.database.Query(PriorityCount)
 	if err != nil {
