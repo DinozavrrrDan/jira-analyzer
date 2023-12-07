@@ -9,7 +9,7 @@ import (
 func (analyticServer *AnalyticServer) GraphFive(projectId int64) ([]models.GraphData, error) {
 	var result []models.GraphData
 
-	rows, err := analyticServer.database.Query("SELECT " +
+	const PriorityCount = "SELECT " +
 		"CASE " +
 		"WHEN priority = 'Critical' THEN 1 " +
 		"WHEN priority = 'Blocker' THEN 2 " +
@@ -19,7 +19,9 @@ func (analyticServer *AnalyticServer) GraphFive(projectId int64) ([]models.Graph
 		"END AS priority, " +
 		"FROM issues " +
 		"GROUP BY priority " +
-		"ORDER BY priority ")
+		"ORDER BY priority "
+
+	rows, err := analyticServer.database.Query(PriorityCount)
 	if err != nil {
 		return nil, fmt.Errorf("GraphFive: select project info %d: %v", projectId, err)
 	}
