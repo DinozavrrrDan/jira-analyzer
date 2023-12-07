@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (analyticServer *AnalyticServer) StartServer() {
+func (analyticServer *AnalyticServer) StartServer() error {
 	analyticServer.logger.Log(logger.INFO, "Server start server...")
 
 	router := mux.NewRouter()
@@ -18,6 +18,8 @@ func (analyticServer *AnalyticServer) StartServer() {
 	err := http.ListenAndServe(analyticServer.configReader.GetAnalyticHost()+":"+analyticServer.configReader.GetAnalyticHost(), router)
 	if err != nil {
 		analyticServer.logger.Log(logger.ERROR, fmt.Sprintf("StartServer: %v", err))
-		panic(fmt.Errorf("StartServer: %v", err))
+		return fmt.Errorf("StartServer: %v", err)
 	}
+
+	return nil
 }
