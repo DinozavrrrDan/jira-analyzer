@@ -14,7 +14,6 @@ func (analyticServer *AnalyticServer) GraphFive(projectId int64) ([]models.Graph
 		" COUNT(*) AS task_count" +
 		" FROM issues" +
 		" GROUP BY priority" +
-		" CASE" +
 		" WHEN priority = 'Critical' THEN 1" +
 		" WHEN priority = 'Blocker' THEN 2" +
 		" WHEN priority = 'Major' THEN 3" +
