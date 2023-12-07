@@ -7,7 +7,7 @@ import (
 )
 
 func (analyticServer *AnalyticServer) GraphFive(projectId int64) ([]models.GraphData, error) {
-	var result []models.GraphData
+	var result []models.GraphData = make([]models.GraphData, 0)
 
 	const PriorityCount = "SELECT " +
 		"priority, COUNT(*) AS task_count " +
