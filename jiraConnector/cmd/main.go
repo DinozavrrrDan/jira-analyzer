@@ -5,5 +5,8 @@ import (
 )
 
 func main() {
-	apiServer.CreateNewApiServer().StartServer()
+	err := apiServer.CreateNewApiServer().StartServer()
+	if err != nil {
+		panic(err)
+	}
 }

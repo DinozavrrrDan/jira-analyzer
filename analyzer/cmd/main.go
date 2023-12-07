@@ -1,5 +1,10 @@
 package main
 
+import endpoints "Jira-analyzer/analyzer/endpoints/resource"
+
 func main() {
-	//gatewayMux := http.NewServeMux()
+	err := endpoints.CreateNewResourceHandler().StartServer()
+	if err != nil {
+		panic(err)
+	}
 }

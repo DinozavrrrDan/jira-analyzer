@@ -64,7 +64,7 @@ func (server *ApiServer) updateProject(responseWriter http.ResponseWriter, reque
 	}
 
 	transformedIssues := server.transformer.TransformData(issues)
-	server.databasePusher.PushIssue(transformedIssues)
+	server.databasePusher.PushIssues(transformedIssues)
 }
 
 func (server *ApiServer) project(responseWriter http.ResponseWriter, request *http.Request) {
@@ -137,14 +137,17 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string) {
 	return defaultLimit, defaultPage, defaultSearch
 }
 
-func (server *ApiServer) StartServer() {
+func (server *ApiServer) StartServer() error {
 	server.logger.Log(logger.INFO, "Server start server...")
 	server.handlers()
 	err := http.ListenAndServe(server.configReader.GetConnectorHost()+":"+server.configReader.GetConnectorPort(), nil)
 
 	if err != nil {
 		server.logger.Log(logger.ERROR, "Error while start a server")
+		return fmt.Errorf("StartServer: %w", err)
 	}
+
+	return nil
 }
 
 func (server *ApiServer) handlers() {

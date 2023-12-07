@@ -44,7 +44,7 @@ func CreateNewResourceHandler() *ResourceHandler {
 	}
 }
 
-func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWriter, request *http.Request) {
+func (resourceHandler *ResourceHandler) handleGetIssue(responseWriter http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
 
@@ -55,7 +55,7 @@ func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWri
 		return
 	}
 
-	//issue, err := resourceHandler.GetIssueInfo(id)
+	issue, err := resourceHandler.getIssue(id)
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -63,7 +63,7 @@ func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWri
 		return
 	}
 
-	//project, err := resourceHandler.GetProjectInfo(issue.Project.Id)
+	project, err := resourceHandler.getProject(issue.Project.ID)
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -78,6 +78,7 @@ func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWri
 			Histories: models.Link{Href: "/api/v1/histories"},
 			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", id)},
 		},
+		Info:    project,
 		Message: "",
 		Name:    "",
 		Status:  true,
@@ -106,7 +107,7 @@ func (resourceHandler *ResourceHandler) getIssue(responseWriter http.ResponseWri
 	responseWriter.WriteHeader(http.StatusOK)
 }
 
-func (resourceHandler *ResourceHandler) getHistory(responseWriter http.ResponseWriter, request *http.Request) {
+func (resourceHandler *ResourceHandler) handleGetProject(responseWriter http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, err := strconv.Atoi(vars["id"])
 
@@ -117,60 +118,7 @@ func (resourceHandler *ResourceHandler) getHistory(responseWriter http.ResponseW
 		return
 	}
 
-	//history, err := resourceHandler.GetHistoryInfo(id)
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
-
-	var historyResponse = models.ResponseStruct{
-		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
-			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", id)},
-		},
-		Message: "",
-		Name:    "",
-		Status:  true,
-	}
-
-	response, err := json.MarshalIndent(historyResponse, "", "\t")
-
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
-
-	responseWriter.WriteHeader(http.StatusOK)
-	_, err = responseWriter.Write(response)
-
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
-
-	responseWriter.WriteHeader(http.StatusOK)
-}
-
-func (resourceHandler *ResourceHandler) getProject(responseWriter http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
-	id, err := strconv.Atoi(vars["id"])
-
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
-
-	//project, err := resourceHandler.GetProjectInfo(id)
+	project, err := resourceHandler.getProject(id)
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -185,6 +133,7 @@ func (resourceHandler *ResourceHandler) getProject(responseWriter http.ResponseW
 			Histories: models.Link{Href: "/api/v1/histories"},
 			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", id)},
 		},
+		Info:    project,
 		Message: "",
 		Name:    "",
 		Status:  true,
@@ -201,6 +150,16 @@ func (resourceHandler *ResourceHandler) getProject(responseWriter http.ResponseW
 
 	responseWriter.WriteHeader(http.StatusOK)
 	_, err = responseWriter.Write(response)
+}
+
+func (resourceHandler *ResourceHandler) handleGetAllProjects(responseWriter http.ResponseWriter, request *http.Request) {
+
+	limit, err := strconv.Atoi(request.URL.Query().Get("limit"))
+	if err != nil {
+		limit = 20
+	}
+
+	projects, err := resourceHandler.getAllProjects(limit)
 
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
@@ -209,10 +168,33 @@ func (resourceHandler *ResourceHandler) getProject(responseWriter http.ResponseW
 		return
 	}
 
+	var projectResponce = models.ResponseStruct{
+		Links: models.ListOfReferences{
+			Issues:    models.Link{Href: "/api/v1/issues"},
+			Projects:  models.Link{Href: "/api/v1/projects"},
+			Histories: models.Link{Href: "/api/v1/histories"},
+			Self:      models.Link{Href: ""},
+		},
+		Info:    projects,
+		Message: "",
+		Name:    "",
+		Status:  true,
+	}
+
+	response, err := json.MarshalIndent(projectResponce, "", "\t")
+
+	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, fmt.Sprintf("Error: %s", err.Error()))
+		responseWriter.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
 	responseWriter.WriteHeader(http.StatusOK)
+	_, err = responseWriter.Write(response)
 }
 
-func (resourceHandler *ResourceHandler) postIssue(responseWriter http.ResponseWriter, request *http.Request) {
+func (resourceHandler *ResourceHandler) handlePostIssue(responseWriter http.ResponseWriter, request *http.Request) {
 	body, err := io.ReadAll(request.Body)
 
 	if err != nil {
@@ -232,7 +214,7 @@ func (resourceHandler *ResourceHandler) postIssue(responseWriter http.ResponseWr
 		return
 	}
 
-	id, err := resourceHandler.InsertIssue(issueInfo)
+	id, err := resourceHandler.insertIssue(issueInfo)
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
@@ -273,70 +255,7 @@ func (resourceHandler *ResourceHandler) postIssue(responseWriter http.ResponseWr
 	responseWriter.WriteHeader(http.StatusCreated)
 }
 
-func (resourceHandler *ResourceHandler) postHistory(responseWriter http.ResponseWriter, request *http.Request) {
-	body, err := io.ReadAll(request.Body)
-
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
-
-	var historyInfo models.HistoryInfo
-	err = json.Unmarshal(body, &historyInfo)
-
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
-
-	id, err := resourceHandler.InsertHistory(historyInfo)
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
-		//как-то напишем об ошибке
-		//statusCode = http.Status - подобрать верный статус
-	} else {
-		responseWriter.WriteHeader(http.StatusOK)
-		//statusCode = http.Status - подобрать верный статус
-	}
-
-	var historyResponse = models.ResponseStruct{
-		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
-			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", id)},
-		},
-		Message: "",
-		Name:    "",
-		Status:  true,
-	}
-
-	response, err := json.MarshalIndent(historyResponse, "", "\t")
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
-
-	_, err = responseWriter.Write(response)
-
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-		responseWriter.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
-
-	responseWriter.WriteHeader(http.StatusCreated)
-}
-
-func (resourceHandler *ResourceHandler) postProject(responseWriter http.ResponseWriter, request *http.Request) {
+func (resourceHandler *ResourceHandler) handlePostProject(responseWriter http.ResponseWriter, request *http.Request) {
 	body, err := io.ReadAll(request.Body)
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
@@ -355,16 +274,13 @@ func (resourceHandler *ResourceHandler) postProject(responseWriter http.Response
 		return
 	}
 
-	id, err := resourceHandler.InsertProject(projectInfo)
+	id, err := resourceHandler.insertProject(projectInfo)
 	if err != nil {
 		resourceHandler.logger.Log(logger.ERROR, err.Error())
 		responseWriter.WriteHeader(http.StatusBadRequest)
-		//как-то напишем об ошибке
-		//statusCode = http.Status - подобрать верный статус
 	} else {
 		resourceHandler.logger.Log(logger.INFO, err.Error())
 		responseWriter.WriteHeader(http.StatusOK)
-		//statusCode = http.Status - подобрать верный статус
 	}
 
 	var projectResponse = models.ResponseStruct{
@@ -397,19 +313,47 @@ func (resourceHandler *ResourceHandler) postProject(responseWriter http.Response
 	responseWriter.WriteHeader(http.StatusCreated)
 }
 
+func (resourceHandler *ResourceHandler) handleDeleteProject(responseWriter http.ResponseWriter, request *http.Request) {
+	body, err := io.ReadAll(request.Body)
+	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	var projectInfo models.ProjectInfo
+	err = json.Unmarshal(body, &projectInfo)
+
+	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	_, err = resourceHandler.deleteProject(projectInfo)
+	if err != nil {
+		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		responseWriter.WriteHeader(http.StatusBadRequest)
+	}
+
+	responseWriter.WriteHeader(http.StatusOK)
+}
+
 func (server *ResourceHandler) handlers(router *mux.Router) {
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"issues/{id:[0-9]+}", server.getIssue).Methods("GET")
+		"/issues/{id:[0-9]+}", server.handleGetIssue).Methods("GET")
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"projects/{id:[0-9]+}", server.getProject).Methods("GET")
+		"/projects/{id:[0-9]+}", server.handleGetProject).Methods("GET")
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"histories/{id:[0-9]+}", server.getHistory).Methods("GET")
+		"/projects", server.handleGetAllProjects).Methods("GET")
 
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"issues/", server.postIssue).Methods("POST")
+		"/issues/", server.handlePostIssue).Methods("POST")
 	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"projects/", server.postProject).Methods("POST")
-	router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
-		"histories/", server.postHistory).Methods("POST")
+		"/projects/", server.handlePostProject).Methods("POST")
 
+	//router.HandleFunc(server.configReader.GetApiPrefix()+server.configReader.GetResourcePrefix()+
+	//"/projects/", server.handleDeleteProject).Methods("DELETE")
 }

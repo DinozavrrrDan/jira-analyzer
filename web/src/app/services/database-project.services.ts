@@ -18,11 +18,14 @@ export class DatabaseProjectServices {
 
   // @ts-ignore
   getAll(): Observable<IRequest>{
+    return this.http.get<IRequest>('http://127.0.0.1:8001/api/v1/resource/projects')
     // TODO Написать запрос на получение всех проектов
   }
 
   // @ts-ignore
   getProjectStatByID(id: string): Observable<IRequestObject> {
+    return this.http.get<IRequest>('http://127.0.0.1:8001/api/v1/resource/projects/' + id)
+
     // TODO Написать запрос на получение статистики проекта по ID
   }
 

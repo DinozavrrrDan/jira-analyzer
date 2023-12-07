@@ -3,19 +3,25 @@ package endpoints
 import (
 	"Jira-analyzer/analyzer/models"
 	"Jira-analyzer/common/logger"
+	"database/sql"
+	"fmt"
 
 	_ "github.com/lib/pq"
 )
 
-func (resourceHandler *ResourceHandler) GetIssueInfo(id int) (models.IssueInfo, error) {
+func (resourceHandler *ResourceHandler) getIssue(id int) (models.IssueInfo, error) {
 	issueInfo := models.IssueInfo{}
 
 	var authorID, assigneeID int
 
-	stmt, _ := resourceHandler.database.
-		Prepare("SELECT id, projectId, authorId, assigneeId, key, summary, description, type, priority, createdTime, closedTime, updatedTime, timeSpent FROM issues where id = ?")
+	row := resourceHandler.database.QueryRow(
+		"SELECT "+
+			"id, projectId, authorId, assigneeId, "+
+			"key, summary, description, type, priority, "+
+			"createdTime, closedTime, updatedTime, timeSpent "+
+			"FROM issues where id = ?", id)
 
-	err := stmt.QueryRow(id).Scan(
+	if err := row.Scan(
 		&issueInfo.ID,
 		&issueInfo.Project.ID,
 		&authorID,
@@ -29,20 +35,30 @@ func (resourceHandler *ResourceHandler) GetIssueInfo(id int) (models.IssueInfo, 
 		&issueInfo.CreatedTime,
 		&issueInfo.ClosedTime,
 		&issueInfo.UpdatedTime,
-		&issueInfo.TimeSpent)
+		&issueInfo.TimeSpent); err != nil {
 
-	if err != nil {
-		return issueInfo, err
+		if err == sql.ErrNoRows {
+			return issueInfo, fmt.Errorf("GetIssueInfo: no such issue: %v", id)
+		}
+		return issueInfo, fmt.Errorf("GetIssueInfo %d: %v", id, err)
 	}
 
-	err = resourceHandler.database.QueryRow("SELECT name FROM author where id = ?", authorID).Scan(&issueInfo.Author)
-	if err != nil {
-		return issueInfo, err
+	row = resourceHandler.database.QueryRow("SELECT name FROM author where id = ?", authorID)
+	if err := row.Scan(issueInfo.Author); err != nil {
+
+		if err == sql.ErrNoRows {
+			return issueInfo, fmt.Errorf("GetIssueInfo: no such author %d", authorID)
+		}
+		return issueInfo, fmt.Errorf("GetIssueInfo: %v", err)
 	}
 
-	err = resourceHandler.database.QueryRow("SELECT id FROM author where name = ?", assigneeID).Scan(&issueInfo.Assignee)
-	if err != nil {
-		return issueInfo, err
+	row = resourceHandler.database.QueryRow("SELECT name FROM author where id = ?", assigneeID)
+	if err := row.Scan(issueInfo.Assignee); err != nil {
+
+		if err == sql.ErrNoRows {
+			return issueInfo, fmt.Errorf("GetIssueInfo: no such author %d", assigneeID)
+		}
+		return issueInfo, fmt.Errorf("GetIssueInfo: %v", err)
 	}
 
 	resourceHandler.logger.Log(logger.INFO, "GetIssueInfo successfully")
@@ -50,51 +66,16 @@ func (resourceHandler *ResourceHandler) GetIssueInfo(id int) (models.IssueInfo, 
 	return issueInfo, nil
 }
 
-func (resourceHandler *ResourceHandler) GetHistoryInfo(id int) ([]models.HistoryInfo, error) {
-	var historyInfos []models.HistoryInfo
-
-	rows, err := resourceHandler.database.Query(
-		"SELECT "+
-			"authorId,"+
-			"changeTime"+
-			"fromStatus,"+
-			"toStatus "+
-			"FROM statusChanges "+
-			"WHERE issueId = ?", id,
-	)
-
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-
-		return historyInfos, err
-	}
-
-	for rows.Next() {
-		historyInfo := models.HistoryInfo{}
-		err := rows.Scan(&historyInfo.AuthorID, &historyInfo.ChangeTime, &historyInfo.FromStatus, &historyInfo.ToStatus)
-
-		if err != nil {
-			resourceHandler.logger.Log(logger.ERROR, err.Error())
-
-			return historyInfos, err
-		}
-
-		historyInfos = append(historyInfos, historyInfo)
-	}
-
-	resourceHandler.logger.Log(logger.INFO, "GetHistoryInfo successfully")
-
-	return historyInfos, nil
-}
-
-func (resourceHandler *ResourceHandler) GetProjectInfo(id int) (models.ProjectInfo, error) {
+func (resourceHandler *ResourceHandler) getProject(id int) (models.ProjectInfo, error) {
 	projectInfo := models.ProjectInfo{}
 
-	stmt, _ := resourceHandler.database.Prepare("SELECT id, title FROM project WHERE id = ?")
-	err := stmt.QueryRow(id).Scan(&projectInfo.ID, &projectInfo.Title)
+	row := resourceHandler.database.QueryRow("SELECT id, title FROM project WHERE id = ?", id)
+	if err := row.Scan(&projectInfo.ID, &projectInfo.Title); err != nil {
 
-	if err != nil {
-		return projectInfo, err
+		if err == sql.ErrNoRows {
+			return projectInfo, fmt.Errorf("GetProjectInfo: no such project %d", id)
+		}
+		return projectInfo, fmt.Errorf("GetProjectInfo: %v", err)
 	}
 
 	resourceHandler.logger.Log(logger.INFO, "GetProjectInfo successfully")
@@ -102,12 +83,16 @@ func (resourceHandler *ResourceHandler) GetProjectInfo(id int) (models.ProjectIn
 	return projectInfo, nil
 }
 
-func (resourceHandler *ResourceHandler) InsertProject(projectInfo models.ProjectInfo) (int, error) {
-	var projectId int
+func (resourceHandler *ResourceHandler) insertProject(projectInfo models.ProjectInfo) (int64, error) {
+	var projectId int64
 
-	if err := resourceHandler.database.QueryRow("INSERT INTO project (title) VALUES(?) RETURNING id",
-		projectInfo.Title).Scan(&projectId); err != nil {
-		return projectId, err
+	result, err := resourceHandler.database.Exec("INSERT INTO project (title) VALUES(?)", projectInfo.Title)
+	if err != nil {
+		return 0, fmt.Errorf("InsertProject: %v", err)
+	}
+	projectId, err = result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("InsertProject: %v", err)
 	}
 
 	resourceHandler.logger.Log(logger.INFO, "InsertProject successfully")
@@ -115,22 +100,51 @@ func (resourceHandler *ResourceHandler) InsertProject(projectInfo models.Project
 	return projectId, nil
 }
 
-func (resourceHandler *ResourceHandler) InsertIssue(issueInfo models.IssueInfo) (int, error) {
-	var issueId, authorId, assigneeId int
+func (resourceHandler *ResourceHandler) deleteProject(projectInfo models.ProjectInfo) (int64, error) {
+	var projectId int64
 
-	err := resourceHandler.database.QueryRow("SELECT id FROM author WHERE name = ?", issueInfo.Author).Scan(&authorId)
+	result, err := resourceHandler.database.Exec("DELETE FROM project WHERE title=?", projectInfo.Title)
 	if err != nil {
-		return issueId, err
+		return 0, fmt.Errorf("deleteProject: %v", err)
+	}
+	projectId, err = result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("deleteProject: %v", err)
 	}
 
-	err = resourceHandler.database.QueryRow("SELECT id FROM author where name = ?", issueInfo.Assignee).Scan(&assigneeId)
-	if err != nil {
-		return issueId, err
+	resourceHandler.logger.Log(logger.INFO, "deleteProject successfully")
+
+	return projectId, nil
+}
+
+func (resourceHandler *ResourceHandler) insertIssue(issueInfo models.IssueInfo) (int64, error) {
+	var issueId, authorId, assigneeId int64
+
+	row := resourceHandler.database.QueryRow("SELECT id FROM author WHERE name = ?", issueInfo.Author)
+	if err := row.Scan(&authorId); err != nil {
+
+		if err == sql.ErrNoRows {
+			return issueId, fmt.Errorf("InsertIssue: no such author %s", issueInfo.Author)
+		}
+		return issueId, fmt.Errorf("InsertIssue: %v", err)
 	}
 
-	stmt, _ := resourceHandler.database.Prepare("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+	row = resourceHandler.database.QueryRow("SELECT id FROM author WHERE name = ?", issueInfo.Assignee)
+	if err := row.Scan(&assigneeId); err != nil {
 
-	err = stmt.QueryRow(issueInfo.Project.ID,
+		if err == sql.ErrNoRows {
+			return issueId, fmt.Errorf("InsertIssue: no such assignee %s", issueInfo.Assignee)
+		}
+		return issueId, fmt.Errorf("InsertIssue: %w", err)
+	}
+
+	result, err := resourceHandler.database.Exec(
+		"INSERT INTO issues "+
+			"(projectId, authorId, assigneeId,"+
+			" key, summary, description, type, priority, status,"+
+			" createdTime, closedTime, updatedTime, timeSpent)"+
+			" values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+		issueInfo.Project.ID,
 		authorId,
 		assigneeId,
 		issueInfo.Key,
@@ -142,43 +156,54 @@ func (resourceHandler *ResourceHandler) InsertIssue(issueInfo models.IssueInfo) 
 		issueInfo.CreatedTime,
 		issueInfo.ClosedTime,
 		issueInfo.UpdatedTime,
-		issueInfo.TimeSpent).Scan(&issueId)
+		issueInfo.TimeSpent)
 
 	if err != nil {
-		return issueId, err
+		return issueId, fmt.Errorf("insertIssue: %w", err)
+	}
+	issueId, err = result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("insertIssue: %w", err)
 	}
 
-	resourceHandler.logger.Log(logger.INFO, "InsertIssue successfully")
+	resourceHandler.logger.Log(logger.INFO, "insertIssue successfully")
 
 	return issueId, nil
 }
 
-func (resourceHandler *ResourceHandler) InsertHistory(historyInfo models.HistoryInfo) (int, error) {
-	var historyID int
+func (resourceHandler *ResourceHandler) getAllProjects(limit int) ([]models.ProjectInfo, error) {
+	result := make([]models.ProjectInfo, 0)
 
-	stmt, _ := resourceHandler.database.
-		Prepare("INSERT INTO StatusChanges (issueId,authorId,changeTime,fromStatus,toStatus) VALUES (?, ?, now(), ?, ?)")
-
-	err := stmt.QueryRow(historyInfo.IssueID, historyInfo.AuthorID, historyInfo.FromStatus, historyInfo.ToStatus).Err()
-
+	rows, err := resourceHandler.database.Query(
+		`SELECT 
+    	projects.id, 
+    	projects.title, 
+		FROM 
+    	projects
+		GROUP BY 
+    	projects.id, 
+    	projects.title
+		ORDER BY 
+    	projects.id
+		LIMIT 
+    	$1`,
+		limit,
+	)
 	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
+		return nil, fmt.Errorf("getAllProjects: %w", err)
+	}
+	defer rows.Close()
 
-		return historyID, err
+	for rows.Next() {
+		var project = models.ProjectInfo{}
+		if err := rows.Scan(&project.ID, &project.Title); err != nil {
+			return result, fmt.Errorf("getAllProjects: %w", err)
+		}
+		result = append(result, project)
+	}
+	if err := rows.Err(); err != nil {
+		return result, fmt.Errorf("albumsByArtist: %w", err)
 	}
 
-	stmt, _ = resourceHandler.database.
-		Prepare("UPDATE Issue SET status = ?, updatedTime = now(), timespent = now()-createdTime WHERE id = ?")
-
-	err = stmt.QueryRow(historyInfo.ToStatus, historyInfo.IssueID).Err()
-
-	if err != nil {
-		resourceHandler.logger.Log(logger.ERROR, err.Error())
-
-		return historyID, err
-	}
-
-	resourceHandler.logger.Log(logger.INFO, "InsertHistoryInfo successfully")
-
-	return historyID, nil
+	return result, nil
 }

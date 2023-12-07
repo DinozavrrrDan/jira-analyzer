@@ -15,5 +15,5 @@ type TransformedIssue struct {
 	CreatedTime time.Time
 	ClosedTime  time.Time
 	UpdatedTime time.Time
-	Timespent   int
+	Timespent   int64
 }
