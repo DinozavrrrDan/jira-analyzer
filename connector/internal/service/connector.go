@@ -125,15 +125,18 @@ func (connector *ConnectorService) threadsFunc(counterOfIssues int, httpClient *
 
 						if errRead != nil || errResponse != nil {
 							isError = true
-
 							close(channelError)
-
 							return
 						}
 
 						var issueResponse models.IssuesList
-						_ = json.Unmarshal(body, &issueResponse)
+						err := json.Unmarshal(body, &issueResponse)
 
+						if err != nil {
+							isError = true
+							close(channelError)
+							return
+						}
 						mutex.Lock()
 						issues = append(issues, issueResponse.Issues...)
 						mutex.Unlock()
@@ -190,7 +193,6 @@ func (connector *ConnectorService) GetProjects(limit int, page int, search strin
 
 	var jiraProjects []models.JiraProject
 	err = json.Unmarshal(body, &jiraProjects) //получаем информацию через сериализацию
-
 	if err != nil {
 		connector.log.Log(logger.ERROR, err.Error())
 

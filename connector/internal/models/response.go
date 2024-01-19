@@ -1,4 +1,4 @@
-package api
+package models
 
 type ResponseStruct struct {
 	Links    ListOfReferences `json:"_links"`
@@ -7,12 +7,6 @@ type ResponseStruct struct {
 	Name     string           `json:"name"`
 	PageInfo Page             `json:"pageInfo"`
 	Status   bool             `json:"status"`
-}
-
-type Page struct {
-	CurrentPageNumber  int `json:"currentPage"`
-	TotalPageCount     int `json:"pageCount"`
-	TotalProjectsCount int `json:"projectsCount"`
 }
 
 type ListOfReferences struct {

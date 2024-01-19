@@ -8,7 +8,9 @@ import (
 )
 
 func main() {
-	configPath := flag.String("configPath", "config/config-connector.yaml", "Path to the config file")
+	configPath := flag.String("configPath", "connector/config/config-connector.yaml", "Path to the config file")
+	flag.Parse()
+
 	log := logger.CreateNewLogger()
 
 	cfg, err := config.NewConfig(*configPath)
@@ -18,8 +20,23 @@ func main() {
 		panic(err)
 	}
 
-	newApp := app.NewApp(cfg, log)
+	newApp, err := app.NewApp(cfg, log)
 
-	defer newApp.Close()
-	newApp.Run()
+	if err != nil {
+		log.Log(logger.ERROR, err.Error())
+		panic(err)
+	}
+
+	defer func(newApp *app.App) {
+		err := newApp.Close()
+		if err != nil {
+			log.Log(logger.ERROR, err.Error())
+			panic(err)
+		}
+	}(newApp)
+
+	if err = newApp.Run(); err != nil {
+		log.Log(logger.ERROR, err.Error())
+		panic(err)
+	}
 }

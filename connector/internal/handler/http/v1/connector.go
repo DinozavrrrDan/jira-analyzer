@@ -1,32 +1,44 @@
-package server
+package v1
 
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/DinozvrrDan/jira-analyzer/connector/api"
+	"github.com/DinozvrrDan/jira-analyzer/connector/config"
+	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
+	"github.com/DinozvrrDan/jira-analyzer/connector/internal/repository"
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/service"
 	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 )
 
-type Handler struct {
+type ConnectorHandler struct {
 	connectorSvc   service.Connector
 	transformerSvc service.Transformer
-	dbPusherSvc    service.DatabasePusher
+	connectorRep   repository.IConnectorRepository
 	log            *logger.Logger
+	cfg            *config.Config
 }
 
-func NewHandler(services *service.Services, log *logger.Logger) *Handler {
-	return &Handler{
+func NewConnectorHandler(services *service.Services, repositories *repository.Repositories, log *logger.Logger, cfg *config.Config) *ConnectorHandler {
+	return &ConnectorHandler{
 		log:            log,
 		connectorSvc:   services.Connector,
 		transformerSvc: services.Transformer,
-		dbPusherSvc:    services.DatabasePusher,
+		connectorRep:   repositories.ConnectorRepository,
+		cfg:            cfg,
 	}
 }
 
-func (handler *Handler) UpdateProject(writer http.ResponseWriter, request *http.Request) {
+func (handler *ConnectorHandler) GetConnectorHandler(router *mux.Router) {
+	router.HandleFunc("/updateProject",
+		handler.UpdateProject).Methods(http.MethodPost)
+	router.HandleFunc("/projects",
+		handler.GetProjects).Methods(http.MethodGet)
+}
+
+func (handler *ConnectorHandler) UpdateProject(writer http.ResponseWriter, request *http.Request) {
 
 	projectName := request.URL.Query().Get("getProjects")
 
@@ -36,6 +48,12 @@ func (handler *Handler) UpdateProject(writer http.ResponseWriter, request *http.
 	}
 
 	issues, err := handler.connectorSvc.GetProjectIssues(projectName)
+
+	if err != nil {
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	response, err := json.MarshalIndent(issues, "", "\t")
 
 	writer.Write(response)
@@ -46,14 +64,20 @@ func (handler *Handler) UpdateProject(writer http.ResponseWriter, request *http.
 	}
 
 	transformedIssues := handler.transformerSvc.TransformData(issues)
-	handler.dbPusherSvc.PushIssue(transformedIssues)
+	err = handler.connectorRep.PushIssue(transformedIssues)
+	if err != nil {
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
+		return
+	}
 }
 
-func (handler *Handler) GetProjects(writer http.ResponseWriter, request *http.Request) {
+func (handler *ConnectorHandler) GetProjects(writer http.ResponseWriter, request *http.Request) {
 
 	limit, page, search, err := getProjectParametersFromRequest(request)
+
 	if err != nil {
-		handler.log.Log(logger.WARNING, "error: Incorrect getProjects parameter. Set default value.")
+		errorWriter(writer, handler.log, "error: Incorrect getProjects parameter.", http.StatusBadRequest)
+		return
 	}
 
 	writer.Header().Set("Content-Type", "application/json")
@@ -65,17 +89,17 @@ func (handler *Handler) GetProjects(writer http.ResponseWriter, request *http.Re
 		return
 	}
 
-	var issueResponse = api.ResponseStruct{
-		Links: api.ListOfReferences{
-			Issues:    api.Link{Href: "/api/v1/issues"},
-			Projects:  api.Link{Href: "/api/v1/projects"},
-			Histories: api.Link{Href: "/api/v1/histories"},
-			Self:      api.Link{Href: fmt.Sprintf("/api/v1/issues/%d", 1)},
+	var issueResponse = models.ResponseStruct{
+		Links: models.ListOfReferences{
+			Issues:    models.Link{Href: "/api/v1/issues"},
+			Projects:  models.Link{Href: "/api/v1/projects"},
+			Histories: models.Link{Href: "/api/v1/histories"},
+			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", 1)},
 		},
 		Info:    projects,
 		Message: "Hello from connector",
 		Name:    "",
-		PageInfo: api.Page{
+		PageInfo: models.Page{
 			TotalPageCount:     pages.TotalPageCount,
 			CurrentPageNumber:  pages.CurrentPageNumber,
 			TotalProjectsCount: pages.TotalProjectsCount,
@@ -114,7 +138,7 @@ func getProjectParametersFromRequest(request *http.Request) (int, int, string, e
 		}
 	}
 
-	if search, ok := urlQuery["limit"]; ok {
+	if search, ok := urlQuery["search"]; ok {
 		defaultSearch = search[0]
 	}
 

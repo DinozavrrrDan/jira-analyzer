@@ -9,7 +9,7 @@ import (
 type Config struct {
 	Connector Connector `yaml:"connector"`
 	DB        DB        `yaml:"database"`
-	Server    Server    `yaml:"server"`
+	Server    Server    `yaml:"handler"`
 }
 
 type Connector struct {

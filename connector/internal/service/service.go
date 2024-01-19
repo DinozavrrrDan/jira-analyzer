@@ -15,14 +15,9 @@ type Transformer interface {
 	TransformData(issues []models.Issue) []models.TransformedIssue
 }
 
-type DatabasePusher interface {
-	PushIssue(issues []models.TransformedIssue)
-}
-
 type Services struct {
-	Connector      Connector
-	Transformer    Transformer
-	DatabasePusher DatabasePusher
+	Connector   Connector
+	Transformer Transformer
 }
 
 type ServicesDependencies struct {
@@ -31,8 +26,7 @@ type ServicesDependencies struct {
 
 func NewServices(deps ServicesDependencies, log *logger.Logger, cfg *config.Config) *Services {
 	return &Services{
-		Connector:      NewConnectorService(deps.JiraRepositoryUrl, log, cfg),
-		Transformer:    NewTransformerService(),
-		DatabasePusher: NewDatabasePusher(log, cfg),
+		Connector:   NewConnectorService(deps.JiraRepositoryUrl, log, cfg),
+		Transformer: NewTransformerService(),
 	}
 }

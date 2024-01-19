@@ -1,4 +1,4 @@
-package server
+package v1
 
 import (
 	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
