@@ -107,10 +107,10 @@ func (handler *ConnectorHandler) GetProjects(writer http.ResponseWriter, request
 		Status: true,
 	}
 
-	response, _ := json.MarshalIndent(issueResponse, "", "\t")
-	_, err = writer.Write(response)
+	response, errResp := json.MarshalIndent(issueResponse, "", "\t")
+	_, errWrite := writer.Write(response)
 
-	if err != nil {
+	if errResp != nil || errWrite != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
