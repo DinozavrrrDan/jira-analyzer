@@ -1,0 +1,17 @@
+database:
+  host_db: localhost
+  port_db: 5432
+  name_db: testdb
+  password_db: pgpwd
+  user_db: pguser
+
+handler:
+  api_server:
+    host_server: localhost
+    port_server: 8080
+    api_pref: /api/v1
+
+  resource_http:
+    resource_host: localhost
+    resource_port: 8001
+    resource_pref: /resource

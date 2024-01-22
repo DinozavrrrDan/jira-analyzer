@@ -3,27 +3,22 @@ package app
 import (
 	"database/sql"
 	"fmt"
-	"github.com/DinozvrrDan/jira-analyzer/connector/config"
-	"github.com/DinozvrrDan/jira-analyzer/connector/internal/handler"
-	"github.com/DinozvrrDan/jira-analyzer/connector/internal/repository"
-	"github.com/DinozvrrDan/jira-analyzer/connector/internal/service"
-	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
+	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/config"
+	handler "github.com/DinozvrrDan/jira-analyzer/backend/analytics/internal/handler/http"
+	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/internal/repository"
+	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/pkg/logger"
 	"github.com/gorilla/mux"
 	"net/http"
 )
 
 type App struct {
-	log *logger.Logger
-	cfg *config.Config
-
+	log    *logger.Logger
+	cfg    *config.Config
 	db     *sql.DB
 	server *http.Server
 }
 
 func NewApp(cfg *config.Config, log *logger.Logger) (*App, error) {
-	deps := service.ServicesDependencies{
-		JiraRepositoryUrl: cfg.Connector.JiraUrl,
-	}
 
 	var db *sql.DB
 	sqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
@@ -39,23 +34,22 @@ func NewApp(cfg *config.Config, log *logger.Logger) (*App, error) {
 	*/
 	repositories := repository.NewRepositories(db)
 
-	services := service.NewServices(deps, log, cfg)
+	analyticsHandlers := handler.NewHandler(repositories, log, cfg)
 
-	handlers := handler.NewHandler(services, repositories, log, cfg)
+	analyticsRouter := mux.NewRouter()
 
-	router := mux.NewRouter()
-	handlers.GetRouter(router)
+	analyticsHandlers.GetRouter(analyticsRouter)
 
-	server := &http.Server{
-		Addr:    cfg.Server.ConnectorHTTP.ConnectorHost + ":" + cfg.Server.ConnectorHTTP.ConnectorPort,
-		Handler: router,
+	analyticsServer := &http.Server{
+		Addr:    cfg.Server.AnalyticsHTTP.AnalyticsHost + ":" + cfg.Server.AnalyticsHTTP.AnalyticsPort,
+		Handler: analyticsRouter,
 	}
 
 	return &App{
 		log:    log,
 		cfg:    cfg,
 		db:     db,
-		server: server,
+		server: analyticsServer,
 	}, nil
 }
 
@@ -64,10 +58,12 @@ func (app *App) Run() error {
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
+
 	return nil
 }
 
 func (app *App) Close() error {
+
 	if err := app.server.Close(); err != nil {
 		return fmt.Errorf(err.Error())
 	}

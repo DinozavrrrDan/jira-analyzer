@@ -2,7 +2,7 @@ package repository
 
 import (
 	"database/sql"
-	postrege_sql "github.com/DinozvrrDan/jira-analyzer/connector/internal/repository/postrege-sql"
+	postregesql "github.com/DinozvrrDan/jira-analyzer/connector/internal/repository/postrege-sql"
 )
 
 type Repositories struct {
@@ -11,6 +11,6 @@ type Repositories struct {
 
 func NewRepositories(db *sql.DB) *Repositories {
 	return &Repositories{
-		ConnectorRepository: postrege_sql.NewConnectorRepository(db),
+		ConnectorRepository: postregesql.NewConnectorRepository(db),
 	}
 }

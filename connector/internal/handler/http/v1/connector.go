@@ -64,7 +64,7 @@ func (handler *ConnectorHandler) UpdateProject(writer http.ResponseWriter, reque
 	}
 
 	transformedIssues := handler.transformerSvc.TransformData(issues)
-	err = handler.connectorRep.PushIssue(transformedIssues)
+	err = handler.connectorRep.PushIssues(transformedIssues)
 	if err != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
@@ -97,7 +97,7 @@ func (handler *ConnectorHandler) GetProjects(writer http.ResponseWriter, request
 			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", 1)},
 		},
 		Info:    projects,
-		Message: "Hello from connector",
+		Message: "",
 		Name:    "",
 		PageInfo: models.Page{
 			TotalPageCount:     pages.TotalPageCount,

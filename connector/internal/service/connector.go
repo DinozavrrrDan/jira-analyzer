@@ -121,9 +121,15 @@ func (connector *ConnectorService) threadsFunc(counterOfIssues int, httpClient *
 							"&expand=changelog&startAt=" + strconv.Itoa(startAt) +
 							"&maxResults=" + strconv.Itoa(issueInOneRequest))
 
+						if errResponse != nil {
+							isError = true
+							close(channelError)
+							return
+						}
+
 						body, errRead := io.ReadAll(response.Body)
 
-						if errRead != nil || errResponse != nil {
+						if errRead != nil {
 							isError = true
 							close(channelError)
 							return

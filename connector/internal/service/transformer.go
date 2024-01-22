@@ -34,7 +34,7 @@ func (dataTransformer *TransformerService) TransformData(issues []models.Issue) 
 			CreatedTime: createdTime,
 			ClosedTime:  closedTime,
 			UpdatedTime: updatedTime,
-			Timespent:   int(timeSpent),
+			TimeSpent:   int64(timeSpent),
 		})
 	}
 	return transformedIssues

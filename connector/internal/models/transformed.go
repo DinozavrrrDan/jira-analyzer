@@ -15,5 +15,5 @@ type TransformedIssue struct {
 	CreatedTime time.Time `json:"CreatedTime"`
 	ClosedTime  time.Time `json:"ClosedTime"`
 	UpdatedTime time.Time `json:"UpdatedTime"`
-	Timespent   int       `json:"Timespent"`
+	TimeSpent   int64     `json:"TimeSpent"`
 }
