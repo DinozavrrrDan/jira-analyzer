@@ -2,14 +2,13 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"github.com/DinozvrrDan/jira-analyzer/connector/config"
-	"github.com/DinozvrrDan/jira-analyzer/connector/internal/app"
-	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
+	"github.com/DinozvrrDan/jira-analyzer/backend/gateway/config"
+	"github.com/DinozvrrDan/jira-analyzer/backend/gateway/internal/app"
+	"github.com/DinozvrrDan/jira-analyzer/backend/gateway/pkg/logger"
 )
 
 func main() {
-	configPath := flag.String("configPath", "connector/config/config-connector.yaml", "Path to the config file")
+	configPath := flag.String("configPath", "backend/gateway/config/config-backend.yaml", "Path to the config file")
 	flag.Parse()
 
 	log := logger.CreateNewLogger()
@@ -17,8 +16,6 @@ func main() {
 	cfg, err := config.NewConfig(*configPath)
 
 	if err != nil {
-		fmt.Println(err.Error())
-
 		log.Log(logger.ERROR, err.Error())
 		panic(err)
 	}
@@ -26,8 +23,6 @@ func main() {
 	newApp, err := app.NewApp(cfg, log)
 
 	if err != nil {
-		fmt.Println(err.Error())
-
 		log.Log(logger.ERROR, err.Error())
 		panic(err)
 	}
@@ -35,15 +30,12 @@ func main() {
 	defer func(newApp *app.App) {
 		err := newApp.Close()
 		if err != nil {
-			fmt.Println(err.Error())
-
 			log.Log(logger.ERROR, err.Error())
 			panic(err)
 		}
 	}(newApp)
 
 	if err = newApp.Run(); err != nil {
-		fmt.Println(err.Error())
 		log.Log(logger.ERROR, err.Error())
 		panic(err)
 	}

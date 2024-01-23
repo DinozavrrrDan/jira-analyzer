@@ -85,13 +85,7 @@ func (connectorRepository *ConnectorRepository) PushIssues(issues []models.Trans
 }
 
 func (connectorRepository *ConnectorRepository) insertIssue(projectId, authorId, assigneeId int64, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timeSpent int64) error {
-
-	_, err := connectorRepository.db.Exec(
-		"INSERT INTO issues "+
-			"(projectId, authorId, assigneeId,"+
-			" key, summary, description, type, priority, status,"+
-			" createdTime, closedTime, updatedTime, timeSpent)"+
-			" values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+	_, err := connectorRepository.db.Exec("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
 		projectId,
 		authorId,
 		assigneeId,
@@ -114,13 +108,10 @@ func (connectorRepository *ConnectorRepository) insertIssue(projectId, authorId,
 }
 
 // updateIssue обвновляет данные issue заданного key в таблицк issues
-func (connectorRepository *ConnectorRepository) updateIssue(projectID, authorId, assigneeId int64, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timespent int64) error {
+func (connectorRepository *ConnectorRepository) updateIssue(projectId, authorId, assigneeId int64, key, summary, description, Type, priority, status string, createdTime, closedTime, updatedTime time.Time, timespent int64) error {
 
-	_, err := connectorRepository.db.Exec("UPDATE issues set"+
-		" projectid = ?, authorid = ?, assigneeid = ?,"+
-		" summary = ?, description = ?, type = ?, priority = ?, status = ?,"+
-		" createdtime = ?, closedtime = ?, updatedtime = ?, timespent = ? where key = ?",
-		projectID,
+	_, err := connectorRepository.db.Exec("UPDATE issues set projectid = $1, authorid = $2, assigneeid = $3, summary = $4, description = $5, type = $6, priority = $7, status = $8, createdtime = $9, closedtime = $10, updatedtime = $11, timespent = $12 where key = $13",
+		projectId,
 		authorId,
 		assigneeId,
 		summary,
@@ -148,9 +139,9 @@ func (connectorRepository *ConnectorRepository) getIssueId(issueKey string) (int
 
 	if err := row.Scan(&issueId); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return issueId, fmt.Errorf("getIssueId error: no issue", issueId)
+			return issueId, fmt.Errorf("getIssueId error: no issue")
 		}
-		return issueId, fmt.Errorf("getIssueId error: %w", issueId, err)
+		return issueId, fmt.Errorf("getIssueId error: %w", err)
 	}
 
 	return issueId, nil
@@ -159,24 +150,19 @@ func (connectorRepository *ConnectorRepository) getIssueId(issueKey string) (int
 // getProjectId получает id по названию проекта из таблицы project
 func (connectorRepository *ConnectorRepository) getProjectId(projectTitle string) (int64, error) {
 	var projectId int64
-	row := connectorRepository.db.QueryRow("SELECT id FROM project where title = ?", projectTitle)
+
+	row := connectorRepository.db.QueryRow("SELECT id FROM project where title = $1", projectTitle)
 
 	if err := row.Scan(&projectId); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return projectId, fmt.Errorf("getProjectId error: no project", projectId)
+		if !errors.Is(err, sql.ErrNoRows) {
+			return projectId, fmt.Errorf("getProjectId error: %w", err)
 		}
-		return projectId, fmt.Errorf("getProjectId error: %w", projectId, err)
 	}
 
 	if projectId == 0 {
-		result, err := connectorRepository.db.Exec("INSERT INTO project (title) VALUES(?)", projectTitle)
-		if err != nil {
-			return projectId, fmt.Errorf("getProjectId error: %w", err.Error())
-		}
-
-		projectId, err := result.LastInsertId()
-		if err != nil {
-			return projectId, fmt.Errorf("getProjectId error: %w", err.Error())
+		err := connectorRepository.db.QueryRow("INSERT INTO project (title) VALUES($1)", projectTitle).Scan(projectId)
+		if !errors.Is(err, sql.ErrNoRows) {
+			return projectId, fmt.Errorf("getProjectId error: %w", err)
 		}
 	}
 
@@ -186,24 +172,18 @@ func (connectorRepository *ConnectorRepository) getProjectId(projectTitle string
 // getAuthorId получает id по имени автора из таблицы author
 func (connectorRepository *ConnectorRepository) getAuthorId(authorName string) (int64, error) {
 	var authorId int64
-	row := connectorRepository.db.QueryRow("SELECT id FROM author where name = ?", authorName)
+	row := connectorRepository.db.QueryRow("SELECT id FROM author where name = $1", authorName)
 
 	if err := row.Scan(&authorId); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return authorId, fmt.Errorf("getAuthorId error: no author", authorId)
+		if !errors.Is(err, sql.ErrNoRows) {
+			return authorId, fmt.Errorf("getAuthorId error: %w", err)
 		}
-		return authorId, fmt.Errorf("getAuthorId error: %w", authorId, err)
 	}
 
 	if authorId == 0 {
-		result, err := connectorRepository.db.Exec("INSERT INTO author (name) VALUES(?)", authorName)
-		if err != nil {
-			return authorId, fmt.Errorf("getAuthorId error: %w", err.Error())
-		}
-
-		authorId, err := result.LastInsertId()
-		if err != nil {
-			return authorId, fmt.Errorf("getAuthorId error: %w", err.Error())
+		err := connectorRepository.db.QueryRow("INSERT INTO author (name) VALUES($1)", authorName).Scan(authorId)
+		if !errors.Is(err, sql.ErrNoRows) {
+			return authorId, fmt.Errorf("getAuthorId error: %w", err)
 		}
 	}
 
@@ -213,24 +193,18 @@ func (connectorRepository *ConnectorRepository) getAuthorId(authorName string) (
 // getAssigneeId получает id по имени assignee из таблицы author
 func (connectorRepository *ConnectorRepository) getAssigneeId(assigneeName string) (int64, error) {
 	var assigneeId int64
-	row := connectorRepository.db.QueryRow("SELECT id FROM author where name = ?", assigneeName)
+	row := connectorRepository.db.QueryRow("SELECT id FROM author where name = $1", assigneeName)
 
 	if err := row.Scan(&assigneeId); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return assigneeId, fmt.Errorf("getAssigneeId error: no assignee", assigneeId)
+		if !errors.Is(err, sql.ErrNoRows) {
+			return assigneeId, fmt.Errorf("getAssigneeId error: %w", err)
 		}
-		return assigneeId, fmt.Errorf("getAssigneeId error: %w", err)
 	}
 
 	if assigneeId == 0 {
-		result, err := connectorRepository.db.Exec("INSERT INTO author (name) VALUES(?)", assigneeName)
-		if err != nil {
-			return assigneeId, fmt.Errorf("getAssigneeId error: %w", err.Error())
-		}
-
-		authorId, err := result.LastInsertId()
-		if err != nil {
-			return authorId, fmt.Errorf("getAssigneeId error: LastInsertId: %w", err.Error())
+		err := connectorRepository.db.QueryRow("INSERT INTO author (name) VALUES($1)", assigneeName).Scan(assigneeId)
+		if !errors.Is(err, sql.ErrNoRows) {
+			return assigneeId, fmt.Errorf("getAuthorId error: %w", err)
 		}
 	}
 
@@ -240,13 +214,12 @@ func (connectorRepository *ConnectorRepository) getAssigneeId(assigneeName strin
 // checkIssueExists проверяет наличие issue заданного issueKey
 func (connectorRepository *ConnectorRepository) checkIssueExists(issueKey string) (bool, error) {
 	var issueId int64
-	row := connectorRepository.db.QueryRow("SELECT id FROM issues where key = ?", issueKey)
+	row := connectorRepository.db.QueryRow("SELECT id FROM issues where key = $1", issueKey)
 
 	if err := row.Scan(&issueId); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return false, fmt.Errorf("checkIssueExists error: no issue", issueId)
+		if !errors.Is(err, sql.ErrNoRows) {
+			return false, fmt.Errorf("checkIssueExists error: %w", err)
 		}
-		return false, fmt.Errorf("checkIssueExists error: %w", issueId, err)
 	}
 
 	return issueId != 0, nil

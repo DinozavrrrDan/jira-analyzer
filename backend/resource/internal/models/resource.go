@@ -29,34 +29,23 @@ type Page struct {
 }
 
 type IssueInfo struct {
-	ID      int `json:"id"`
-	Project struct {
-		ID    int    `json:"projectId"`
-		Title string `json:"title"`
-	} `json:"project"`
-	Key         string    `json:"key"`
-	CreatedTime time.Time `json:"createdTime"`
-	ClosedTime  time.Time `json:"closedTime"`
-	UpdatedTime time.Time `json:"updatedTime"`
-	Summary     string    `json:"summary"`
-	Description string    `json:"description"`
-	Type        string    `json:"type"`
-	Priority    string    `json:"priority"`
-	Status      bool      `json:"status"`
-	Author      string    `json:"author"`
-	Assignee    string    `json:"assignee"`
-	TimeSpent   int       `json:"timeSpent"`
-}
-
-type HistoryInfo struct {
-	IssueID    int       `json:"issueId"`
-	AuthorID   int       `json:"authorId"`
-	ChangeTime time.Time `json:"changeTime"`
-	FromStatus string    `json:"fromStatus"`
-	ToStatus   string    `json:"toStatus"`
+	Id          int         `json:"id"`
+	Project     ProjectInfo `json:"project"`
+	Key         string      `json:"key"`
+	CreatedTime time.Time   `json:"createdTime"`
+	ClosedTime  time.Time   `json:"closedTime"`
+	UpdatedTime time.Time   `json:"updatedTime"`
+	Summary     string      `json:"summary"`
+	Description string      `json:"description"`
+	Type        string      `json:"type"`
+	Priority    string      `json:"priority"`
+	Status      bool        `json:"status"`
+	Author      string      `json:"author"`
+	Assignee    string      `json:"assignee"`
+	TimeSpent   int         `json:"timeSpent"`
 }
 
 type ProjectInfo struct {
-	ID    int    `json:"projectId"`
+	Id    int    `json:"projectId"`
 	Title string `json:"title"`
 }

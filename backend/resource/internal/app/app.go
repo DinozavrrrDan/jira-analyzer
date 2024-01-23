@@ -35,15 +35,15 @@ func NewApp(cfg *config.Config, log *logger.Logger) (*App, error) {
 	*/
 	repositories := repository.NewRepositories(db)
 
-	resourceHandlers := resourceHandler.NewHandler(repositories, log, cfg)
+	handlers := resourceHandler.NewHandler(repositories, log, cfg)
 
-	resourceRouter := mux.NewRouter()
+	router := mux.NewRouter()
 
-	resourceHandlers.GetRouter(resourceRouter)
+	handlers.GetRouter(router)
 
 	resourceServer := &http.Server{
 		Addr:    cfg.Server.ResourceHTTP.ResourceHost + ":" + cfg.Server.ResourceHTTP.ResourcePort,
-		Handler: resourceRouter,
+		Handler: router,
 	}
 
 	return &App{

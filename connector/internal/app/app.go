@@ -9,6 +9,7 @@ import (
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/service"
 	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
 	"github.com/gorilla/mux"
+	_ "github.com/lib/pq"
 	"net/http"
 )
 
@@ -32,11 +33,11 @@ func NewApp(cfg *config.Config, log *logger.Logger) (*App, error) {
 		cfg.DB.UserDB,
 		cfg.DB.PasswordDB,
 		cfg.DB.NameDB)
-	db, _ = sql.Open("postgres", sqlInfo)
-	/*	if err != nil {
-			return nil, fmt.Errorf(err.Error())
-		}
-	*/
+	db, err := sql.Open("postgres", sqlInfo)
+	if err != nil {
+		return nil, fmt.Errorf(err.Error())
+	}
+
 	repositories := repository.NewRepositories(db)
 
 	services := service.NewServices(deps, log, cfg)

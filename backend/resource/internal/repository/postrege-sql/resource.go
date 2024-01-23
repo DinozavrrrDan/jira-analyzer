@@ -2,6 +2,8 @@ package postrege_sql
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"github.com/DinozvrrDan/jira-analyzer/backend/resource/internal/models"
 	_ "github.com/lib/pq"
 )
@@ -21,12 +23,16 @@ func (resourceRepository *ResourceRepository) GetIssueInfo(id int) (models.Issue
 
 	var authorID, assigneeID int
 
-	stmt, _ := resourceRepository.db.
-		Prepare("SELECT id, projectId, authorId, assigneeId, key, summary, description, type, priority, createdTime, closedTime, updatedTime, timeSpent FROM issues where id = ?")
+	row := resourceRepository.db.QueryRow(
+		"SELECT "+
+			"id, projectId, authorId, assigneeId, "+
+			"key, summary, description, type, priority, "+
+			"createdTime, closedTime, updatedTime, timeSpent "+
+			"FROM issues where id = ?", id)
 
-	err := stmt.QueryRow(id).Scan(
-		&issueInfo.ID,
-		&issueInfo.Project.ID,
+	if err := row.Scan(
+		&issueInfo.Id,
+		&issueInfo.Project.Id,
 		&authorID,
 		&assigneeID,
 		&issueInfo.Key,
@@ -38,96 +44,89 @@ func (resourceRepository *ResourceRepository) GetIssueInfo(id int) (models.Issue
 		&issueInfo.CreatedTime,
 		&issueInfo.ClosedTime,
 		&issueInfo.UpdatedTime,
-		&issueInfo.TimeSpent)
+		&issueInfo.TimeSpent); err != nil {
 
-	if err != nil {
-		return issueInfo, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return issueInfo, fmt.Errorf("GetIssueInfo: no such issue: %v", id)
+		}
+		return issueInfo, fmt.Errorf("GetIssueInfo %d: %v", id, err)
 	}
 
-	err = resourceRepository.db.QueryRow("SELECT name FROM author where id = ?", authorID).Scan(&issueInfo.Author)
-	if err != nil {
-		return issueInfo, err
+	row = resourceRepository.db.QueryRow("SELECT name FROM author where id = ?", authorID)
+	if err := row.Scan(issueInfo.Author); err != nil {
+
+		if errors.Is(err, sql.ErrNoRows) {
+			return issueInfo, fmt.Errorf("GetIssueInfo: no such author %d", authorID)
+		}
+		return issueInfo, fmt.Errorf("GetIssueInfo: %v", err)
 	}
 
-	err = resourceRepository.db.QueryRow("SELECT id FROM author where name = ?", assigneeID).Scan(&issueInfo.Assignee)
-	if err != nil {
-		return issueInfo, err
+	row = resourceRepository.db.QueryRow("SELECT name FROM author where id = ?", assigneeID)
+	if err := row.Scan(issueInfo.Assignee); err != nil {
+
+		if errors.Is(err, sql.ErrNoRows) {
+			return issueInfo, fmt.Errorf("GetIssueInfo: no such author %d", assigneeID)
+		}
+		return issueInfo, fmt.Errorf("GetIssueInfo: %v", err)
 	}
 
 	return issueInfo, nil
 }
 
-func (resourceRepository *ResourceRepository) GetHistoryInfo(id int) ([]models.HistoryInfo, error) {
-	var historyInfos []models.HistoryInfo
-
-	rows, err := resourceRepository.db.Query(
-		"SELECT "+
-			"authorId,"+
-			"changeTime"+
-			"fromStatus,"+
-			"toStatus "+
-			"FROM statusChanges "+
-			"WHERE issueId = ?", id,
-	)
-
-	if err != nil {
-		return historyInfos, err
-	}
-
-	for rows.Next() {
-		historyInfo := models.HistoryInfo{}
-		err := rows.Scan(&historyInfo.AuthorID, &historyInfo.ChangeTime, &historyInfo.FromStatus, &historyInfo.ToStatus)
-
-		if err != nil {
-			return historyInfos, err
-		}
-
-		historyInfos = append(historyInfos, historyInfo)
-	}
-
-	return historyInfos, nil
-}
-
 func (resourceRepository *ResourceRepository) GetProjectInfo(id int) (models.ProjectInfo, error) {
 	projectInfo := models.ProjectInfo{}
 
-	stmt, _ := resourceRepository.db.Prepare("SELECT id, title FROM project WHERE id = ?")
-	err := stmt.QueryRow(id).Scan(&projectInfo.ID, &projectInfo.Title)
+	row := resourceRepository.db.QueryRow("SELECT id, title FROM project WHERE id = ?", id)
+	if err := row.Scan(&projectInfo.Id, &projectInfo.Title); err != nil {
 
-	if err != nil {
-		return projectInfo, err
+		if errors.Is(err, sql.ErrNoRows) {
+			return projectInfo, fmt.Errorf("GetProjectInfo: no such project %d", id)
+		}
+		return projectInfo, fmt.Errorf("GetProjectInfo: %v", err)
 	}
 
 	return projectInfo, nil
 }
 
-func (resourceRepository *ResourceRepository) InsertProject(projectInfo models.ProjectInfo) (int, error) {
-	var projectId int
+func (resourceRepository *ResourceRepository) InsertProject(projectInfo models.ProjectInfo) (int64, error) {
+	var projectId int64
 
-	if err := resourceRepository.db.QueryRow("INSERT INTO project (title) VALUES(?) RETURNING id",
-		projectInfo.Title).Scan(&projectId); err != nil {
-		return projectId, err
+	result, err := resourceRepository.db.Exec("INSERT INTO project (title) VALUES($1)", projectInfo.Title)
+	if err != nil {
+		return 0, fmt.Errorf("InsertProject: %v", err)
+	}
+	projectId, err = result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("InsertProject: %v", err)
 	}
 
 	return projectId, nil
 }
 
-func (resourceRepository *ResourceRepository) InsertIssue(issueInfo models.IssueInfo) (int, error) {
-	var issueId, authorId, assigneeId int
+func (resourceRepository *ResourceRepository) InsertIssue(issueInfo models.IssueInfo) (int64, error) {
+	var issueId, authorId, assigneeId int64
 
-	err := resourceRepository.db.QueryRow("SELECT id FROM author WHERE name = ?", issueInfo.Author).Scan(&authorId)
-	if err != nil {
-		return issueId, err
+	row := resourceRepository.db.QueryRow("SELECT id FROM author WHERE name = ?", issueInfo.Author)
+	if err := row.Scan(&authorId); err != nil {
+
+		if errors.Is(err, sql.ErrNoRows) {
+			return issueId, fmt.Errorf("InsertIssue: no such author %s", issueInfo.Author)
+		}
+		return issueId, fmt.Errorf("InsertIssue: %v", err)
 	}
 
-	err = resourceRepository.db.QueryRow("SELECT id FROM author where name = ?", issueInfo.Assignee).Scan(&assigneeId)
-	if err != nil {
-		return issueId, err
+	row = resourceRepository.db.QueryRow("SELECT id FROM author WHERE name = ?", issueInfo.Assignee)
+	if err := row.Scan(&assigneeId); err != nil {
+
+		if err == sql.ErrNoRows {
+			return issueId, fmt.Errorf("InsertIssue: no such assignee %s", issueInfo.Assignee)
+		}
+		return issueId, fmt.Errorf("InsertIssue: %w", err)
 	}
 
-	stmt, _ := resourceRepository.db.Prepare("INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-
-	err = stmt.QueryRow(issueInfo.Project.ID,
+	result, err := resourceRepository.db.Exec(
+		"INSERT INTO issues (projectId, authorId, assigneeId, key, summary, description, type, priority, status, createdTime, closedTime, updatedTime, timeSpent) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+		issueInfo.Project.Id,
 		authorId,
 		assigneeId,
 		issueInfo.Key,
@@ -139,35 +138,59 @@ func (resourceRepository *ResourceRepository) InsertIssue(issueInfo models.Issue
 		issueInfo.CreatedTime,
 		issueInfo.ClosedTime,
 		issueInfo.UpdatedTime,
-		issueInfo.TimeSpent).Scan(&issueId)
+		issueInfo.TimeSpent)
 
 	if err != nil {
-		return issueId, err
+		return issueId, fmt.Errorf("insertIssue: %w", err)
+	}
+	issueId, err = result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("insertIssue: %w", err)
 	}
 
 	return issueId, nil
 }
 
-func (resourceRepository *ResourceRepository) InsertHistory(historyInfo models.HistoryInfo) (int, error) {
-	var historyID int
-
-	stmt, _ := resourceRepository.db.
-		Prepare("INSERT INTO StatusChanges (issueId,authorId,changeTime,fromStatus,toStatus) VALUES (?, ?, now(), ?, ?)")
-
-	err := stmt.QueryRow(historyInfo.IssueID, historyInfo.AuthorID, historyInfo.FromStatus, historyInfo.ToStatus).Err()
-
-	if err != nil {
-		return historyID, err
+func (resourceRepository *ResourceRepository) DeleteProject(title string) error {
+	if err := resourceRepository.db.QueryRow("DELETE FROM project WHERE title = $1", title); err != nil {
+		return fmt.Errorf("DeleteProject error: %w", err)
 	}
 
-	stmt, _ = resourceRepository.db.
-		Prepare("UPDATE Issue SET status = ?, updatedTime = now(), timespent = now()-createdTime WHERE id = ?")
+	return nil
+}
 
-	err = stmt.QueryRow(historyInfo.ToStatus, historyInfo.IssueID).Err()
-
-	if err != nil {
-		return historyID, err
+func (resourceRepository *ResourceRepository) DeleteAuthor(name string) error {
+	if err := resourceRepository.db.QueryRow("DELETE FROM author WHERE name = $1", name); err != nil {
+		return fmt.Errorf("DeleteAuthor error: %w", err)
 	}
 
-	return historyID, nil
+	return nil
+}
+
+func (resourceRepository *ResourceRepository) DeleteAssignee(name string) error {
+	if err := resourceRepository.db.QueryRow("DELETE FROM author WHERE name = $1", name); err != nil {
+		return fmt.Errorf("DeleteAssignee error: %w", err)
+	}
+
+	return nil
+}
+
+func (resourceRepository *ResourceRepository) DeleteIssue(issue models.IssueInfo) error {
+	if err := resourceRepository.DeleteProject(issue.Project.Title); err != nil {
+		return fmt.Errorf("DeleteProject error: %w", err)
+	}
+
+	if err := resourceRepository.DeleteAuthor(issue.Author); err != nil {
+		return fmt.Errorf("DeleteProject error: %w", err)
+	}
+
+	if err := resourceRepository.DeleteAssignee(issue.Assignee); err != nil {
+		return fmt.Errorf("DeleteProject error: %w", err)
+	}
+
+	if err := resourceRepository.db.QueryRow("DELETE FROM issues WHERE key = $1", issue.Key); err != nil {
+		return fmt.Errorf("DeleteProject error: %w", err)
+	}
+
+	return nil
 }

@@ -1,14 +1,14 @@
 package repository
 
-import (
-	"github.com/DinozvrrDan/jira-analyzer/backend/resource/internal/models"
-)
+import "github.com/DinozvrrDan/jira-analyzer/backend/resource/internal/models"
 
 type IResourceRepository interface {
 	GetIssueInfo(id int) (models.IssueInfo, error)
-	GetHistoryInfo(id int) ([]models.HistoryInfo, error)
 	GetProjectInfo(id int) (models.ProjectInfo, error)
-	InsertProject(projectInfo models.ProjectInfo) (int, error)
-	InsertIssue(issueInfo models.IssueInfo) (int, error)
-	InsertHistory(historyInfo models.HistoryInfo) (int, error)
+	InsertProject(projectInfo models.ProjectInfo) (int64, error)
+	InsertIssue(issueInfo models.IssueInfo) (int64, error)
+	DeleteProject(title string) error
+	DeleteAuthor(name string) error
+	DeleteAssignee(name string) error
+	DeleteIssue(issue models.IssueInfo) error
 }

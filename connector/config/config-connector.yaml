@@ -9,7 +9,7 @@ database:
   host_db: localhost
   port_db: 5432
   name_db: testdb
-  password_db: pgpwd
+  password_db: pswd
   user_db: pguser
 
 handler:

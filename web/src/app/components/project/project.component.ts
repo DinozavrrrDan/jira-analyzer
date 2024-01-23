@@ -12,7 +12,7 @@ export class ProjectComponent implements OnInit {
   adding: Boolean;
 
   constructor(private projectService: ProjectServices) {
-    this.adding = false;
+    this.adding = true;
   }
 
   ngOnInit(): void {
@@ -34,7 +34,7 @@ export class ProjectComponent implements OnInit {
       });
       } else {
       console.log(this.project.Id);
-        this.projectService.deleteProject(project.Id).subscribe(resp => {
+        this.projectService.deleteProject(project.Key).subscribe(resp => {
 
         },
           error => {

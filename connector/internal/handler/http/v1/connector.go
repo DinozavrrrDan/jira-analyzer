@@ -39,30 +39,22 @@ func (handler *ConnectorHandler) GetConnectorHandler(router *mux.Router) {
 }
 
 func (handler *ConnectorHandler) UpdateProject(writer http.ResponseWriter, request *http.Request) {
-
-	projectName := request.URL.Query().Get("getProjects")
-
+	projectName := request.URL.Query()["project"]
 	if len(projectName) == 0 {
 		errorWriter(writer, handler.log, "error: no projects in request.", http.StatusBadRequest)
 		return
 	}
-
-	issues, err := handler.connectorSvc.GetProjectIssues(projectName)
-
+	issues, err := handler.connectorSvc.GetProjectIssues(projectName[0])
 	if err != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	response, err := json.MarshalIndent(issues, "", "\t")
-
 	writer.Write(response)
-
 	if err != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	transformedIssues := handler.transformerSvc.TransformData(issues)
 	err = handler.connectorRep.PushIssues(transformedIssues)
 	if err != nil {
@@ -97,7 +89,7 @@ func (handler *ConnectorHandler) GetProjects(writer http.ResponseWriter, request
 			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", 1)},
 		},
 		Info:    projects,
-		Message: "",
+		Message: "Hello from connector",
 		Name:    "",
 		PageInfo: models.Page{
 			TotalPageCount:     pages.TotalPageCount,
