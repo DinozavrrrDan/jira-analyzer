@@ -34,7 +34,11 @@ func (dataTransformer *TransformerService) TransformData(issues []models.Issue) 
 			CreatedTime: createdTime,
 			ClosedTime:  closedTime,
 			UpdatedTime: updatedTime,
+<<<<<<< HEAD:connector/internal/service/transformer.go
 			TimeSpent:   int64(timeSpent),
+=======
+			Timespent:   int64(timeSpent),
+>>>>>>> 77eb92a4ac4e65cecd3e27102698a8f5679caf6c:jiraConnector/transformer/transformer.go
 		})
 	}
 	return transformedIssues
