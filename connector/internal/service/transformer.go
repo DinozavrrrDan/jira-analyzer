@@ -2,8 +2,9 @@ package service
 
 import (
 	"fmt"
-	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
 	"time"
+
+	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
 )
 
 type TransformerService struct {
@@ -38,11 +39,7 @@ func (dataTransformer *TransformerService) TransformData(issues []models.Issue) 
 			CreatedTime: createdTime,
 			ClosedTime:  closedTime,
 			UpdatedTime: updatedTime,
-<<<<<<< HEAD:jiraConnector/transformer/transformer.go
-			Timespent:   int64(timeSpent),
-=======
 			TimeSpent:   int64(timespent.Seconds()),
->>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674:connector/internal/service/transformer.go
 		})
 	}
 	return transformedIssues

@@ -23,11 +23,7 @@ export class ProjectServices {
 
   // @ts-ignore
   addProject(key: String): Observable<IRequest>{
-<<<<<<< HEAD
-    return this.http.post<IRequest>('http://127.0.0.1:8003/api/v1/connector/updateProject?project='+key, ' ')
-=======
     return this.http.post<IRequest>('http://'+ this.urlPath +'/api/v1/connector/updateProject?project='+key, '')
->>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674
     // TODO Написать запрос на добавление проета в БД. Добавление происходит по ключу проекта
   }
 
