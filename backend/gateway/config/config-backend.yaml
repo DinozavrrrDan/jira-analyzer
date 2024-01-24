@@ -1,0 +1,28 @@
+gateway:
+  host: localhost
+  port: 8000
+
+handler:
+  api_server:
+    host_server: localhost
+    port_server: 8080
+    api_pref: /api/v1
+
+  resource_http:
+    resource_host: localhost
+    resource_port: 8001
+    resource_pref: /resource
+
+  analytics_http:
+    analytics_host: localhost
+    analytics_port: 8002
+    analytics_pref: /graph
+
+  connector_http:
+    connector_host: localhost
+    connector_port: 8003
+    connector_pref: /connector
+
+timeout:
+  resource: 5
+  analytics: 15
