@@ -1,0 +1,18 @@
+database:
+  host_db: localhost
+  port_db: 5432
+  name_db: testdb
+  password_db: pswd
+  user_db: pguser
+
+handler:
+  api_server:
+    host_server: localhost
+    port_server: 8080
+    api_pref: /api/v1
+
+  analytics_http:
+    analytics_host: localhost
+    analytics_port: 8002
+    analytics_pref: /graph
+

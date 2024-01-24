@@ -44,7 +44,10 @@ export class ComparePageComponent implements OnInit {
         ids.push(value)
       }
     })
-
+    console.log(items.length)
+    console.log(items)
+    console.log(ids.length)
+    console.log(ids)
     if (items.length > 3){
       this.showErrorMessage("Максимальное число проектов 3")
     }else if (items.length <= 1){

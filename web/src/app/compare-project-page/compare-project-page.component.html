@@ -25,25 +25,25 @@
       <tr id="summary_task_count">
         <td>Общее количество задач</td>
         <td *ngFor="let stat of resultReq">
-          {{stat.allIssuesCount}}
+          {{stat.issueCount}}
         </td>
       </tr>
       <tr id = "open_task_count">
         <td>Количество открытых задач</td>
         <td *ngFor="let stat of resultReq">
-          {{stat.openIssuesCount}}
+          {{stat.openedIssuesCount}}
         </td>
       </tr>
       <tr id = "close_task_count">
         <td>Количество закрытых задач</td>
         <td *ngFor="let stat of resultReq">
-          {{stat.closeIssuesCount}}
+          {{stat.closedIssuesCount}}
         </td>
       </tr>
       <tr id = "reopen_task_count">
         <td>Количество переоткрытых задач</td>
         <td *ngFor="let stat of resultReq">
-          {{stat.reopenedIssuesCount}}
+          {{stat.reopenedIssueCount}}
         </td>
       </tr>
       <tr id = "resolved_task_count">

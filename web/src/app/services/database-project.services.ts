@@ -17,45 +17,60 @@ export class DatabaseProjectServices {
 
 
   // @ts-ignore
+<<<<<<< HEAD
   getAll(): Observable<IRequest>{
     return this.http.get<IRequest>('http://127.0.0.1:8001/api/v1/resource/projects')
+=======
+  getAll(): Observable<IRequest> {
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/resource/projects')
+>>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674
     // TODO Написать запрос на получение всех проектов
   }
 
   // @ts-ignore
+<<<<<<< HEAD
   getProjectStatByID(id: string): Observable<IRequestObject> {
     return this.http.get<IRequest>('http://127.0.0.1:8001/api/v1/resource/projects/' + id)
+=======
+  getProjectStatByID(name: string): Observable<IRequestObject> {
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/resource/project?project=' + name)
+>>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674
 
     // TODO Написать запрос на получение статистики проекта по ID
   }
 
   // @ts-ignore
   getComplitedGraph(taskNumber: string, projectName: Array<string>): Observable<IRequestObject> {
+    this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/compare/' + taskNumber + '?project=' + projectName.toString())
     // TODO Написать запрос на получение сравнения
   }
 
   // @ts-ignore
   getGraph(taskNumber: string, projectName: string): Observable<IRequestObject> {
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/get/'+ taskNumber +'?project=' + projectName)
     // TODO Написать запрос на получение графа
   }
 
   // @ts-ignore
   makeGraph(taskNumber: string, projectName: string): Observable<IRequestObject> {
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/make/'+ taskNumber +'?project=' + projectName)
+
     // TODO Написать запрос на создание графа
   }
 
   // @ts-ignore
   deleteGraphs(projectName: string): Observable<IRequestObject> {
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/delete?project=' + projectName)
     // TODO Написать запрос на удаление графа
   }
 
   // @ts-ignore
-  isAnalyzed(projectName: string): Observable<IRequestObject>{
+  isAnalyzed(projectName: string): Observable<IRequestObject> {
     // TODO Написать запрос
   }
 
   // @ts-ignore
-  isEmpty(projectName: string): Observable<IRequestObject>{
-    // TODO Написать запрос
+  isEmpty(projectName: string): Observable<IRequestObject> {
+    return this.http.get<IRequestObject>('http://' + this.urlPath + '/api/v1/isEmpty?project=' + projectName)
   }
 }
