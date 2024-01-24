@@ -60,21 +60,24 @@ export class MyProjectComponent implements OnInit{
   }
 
   async processProject() {
-    this.dbProjectService.isEmpty(this.myProject.Name.toString()).subscribe(resp => {
-      if (resp.data["isEmpty"]){
-        alert("Project is empty, analytical tasks are not available")
-        return
-      }
-      this.dbProjectService.deleteGraphs(this.myProject.Name.toString()).subscribe(info => {
+    // this.dbProjectService.isEmpty(this.myProject.Name.toString()).subscribe(resp => {
+    //   if (resp.data["isEmpty"]){
+    //     alert("Project is empty, analytical tasks are not available")
+    //     return
+    //   }
+    console.log(this.myProject.Name.toString())
+       this.dbProjectService.deleteGraphs(this.myProject.Name.toString()).subscribe(info => {
         this.complited = 0;
         this.checked = 0;
         this.checkboxes.forEach((box: SettingBox) => {
           if (box.Checked) {
             this.checked++
           }
+          console.log("Cheked after" + this.checked)
         })
         for (const box of this.checkboxes) {
           if (box.Checked) {
+            console.log("MAKE:" +  box.BoxId.toString() + "  " + this.myProject.Name.toString())
             this.dbProjectService.makeGraph(box.BoxId.toString(), this.myProject.Name.toString()).subscribe(info => {
               this.complited++;
             })
@@ -82,7 +85,7 @@ export class MyProjectComponent implements OnInit{
         }
         this.processed = true
       })
-    })
+     // })
   }
 
   checkResult(){

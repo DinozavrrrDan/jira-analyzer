@@ -90,6 +90,16 @@ func (resourceRepository *ResourceRepository) GetProjectInfo(title string) (mode
 		}
 		return models.ProjectInfo{}, fmt.Errorf("GetProjectInfo: %v", err)
 	}
+<<<<<<< HEAD
+=======
+
+	//avrTime, err := resourceRepository.GetAvrgActiveTime(id)
+	//projectInfo.AverageTime = avrTime
+	//if err != nil {
+	//	return models.ProjectInfo{}, fmt.Errorf("GetProjectInfo: %v", err)
+	//}
+
+>>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674
 	fmt.Println(projectInfo)
 
 	return projectInfo, nil
@@ -125,7 +135,11 @@ func (resourceRepository *ResourceRepository) InsertIssue(issueInfo models.Issue
 	row = resourceRepository.db.QueryRow("SELECT id FROM author WHERE name = ?", issueInfo.Assignee)
 	if err := row.Scan(&assigneeId); err != nil {
 
+<<<<<<< HEAD
 		if !errors.Is(err, sql.ErrNoRows) {
+=======
+		if err == sql.ErrNoRows {
+>>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674
 			return issueId, fmt.Errorf("InsertIssue: no such assignee %s", issueInfo.Assignee)
 		}
 		return issueId, fmt.Errorf("InsertIssue: %w", err)
@@ -191,6 +205,45 @@ func (resourceRepository *ResourceRepository) getProjectId(projectTitle string) 
 	return projectId, nil
 }
 
+<<<<<<< HEAD
+=======
+func (resourceRepository *ResourceRepository) DeleteAuthor(name string) error {
+	if err := resourceRepository.db.QueryRow("DELETE FROM author WHERE name = $1", name); err != nil {
+		return fmt.Errorf("DeleteAuthor error: %w", err)
+	}
+
+	return nil
+}
+
+func (resourceRepository *ResourceRepository) DeleteAssignee(name string) error {
+	if err := resourceRepository.db.QueryRow("DELETE FROM author WHERE name = $1", name); err != nil {
+		return fmt.Errorf("DeleteAssignee error: %w", err)
+	}
+
+	return nil
+}
+
+func (resourceRepository *ResourceRepository) DeleteIssue(issue models.IssueInfo) error {
+	if err := resourceRepository.DeleteProject(issue.Project.Title); err != nil {
+		return fmt.Errorf("DeleteProject error: %w", err)
+	}
+
+	if err := resourceRepository.DeleteAuthor(issue.Author); err != nil {
+		return fmt.Errorf("DeleteProject error: %w", err)
+	}
+
+	if err := resourceRepository.DeleteAssignee(issue.Assignee); err != nil {
+		return fmt.Errorf("DeleteProject error: %w", err)
+	}
+
+	if err := resourceRepository.db.QueryRow("DELETE FROM issues WHERE key = $1", issue.Key); err != nil {
+		return fmt.Errorf("DeleteProject error: %w", err)
+	}
+
+	return nil
+}
+
+>>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674
 func (resourceRepository *ResourceRepository) DeleteAuthors(ids []int64) error {
 	for _, id := range ids {
 		if _, err := resourceRepository.db.Exec("DELETE FROM author WHERE id = $1", id); err != nil {
@@ -227,6 +280,10 @@ func (resourceRepository *ResourceRepository) GetProjects() ([]models.Project, e
 			return nil, fmt.Errorf("GetProjects error: %w", err)
 		}
 		tmp.Existence = true
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674
 		projects = append(projects, tmp)
 	}
 

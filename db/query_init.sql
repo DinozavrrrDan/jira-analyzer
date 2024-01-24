@@ -19,13 +19,5 @@ CREATE TABLE issues (
     timeSpent INT
 );
 
-CREATE TABLE statusChange (
-    issueId INT NOT NULL,
-    authorId INT NOT NULL,
-    changeTime TIMESTAMP WITHOUT TIME ZONE,
-    fromStatus TEXT,
-    toStatus TEXT
-);
-
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO pguser;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO pguser;

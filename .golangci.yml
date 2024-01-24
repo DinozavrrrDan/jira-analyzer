@@ -32,8 +32,6 @@ linters-settings:
   depguard:
     rules:
       main:
-        files:
-          - !$test
         allow:
           - $gostd
           - github.com/spbpu_go_course/lab_5

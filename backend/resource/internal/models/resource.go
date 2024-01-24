@@ -62,4 +62,8 @@ type ProjectInfo struct {
 	ResolvedIssuesCount int    `json:"resolvedIssuesCount"`
 	ReopenedIssueCount  int    `json:"reopenedIssueCount"`
 	ProgressIssuesCount int    `json:"progressIssuesCount"`
+<<<<<<< HEAD
+=======
+	AverageTime         int    `json:"averageTime"`
+>>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674
 }

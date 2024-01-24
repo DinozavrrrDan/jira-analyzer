@@ -31,21 +31,26 @@ export class DatabaseProjectServices {
 
   // @ts-ignore
   getComplitedGraph(taskNumber: string, projectName: Array<string>): Observable<IRequestObject> {
+    this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/compare/' + taskNumber + '?project=' + projectName.toString())
     // TODO Написать запрос на получение сравнения
   }
 
   // @ts-ignore
   getGraph(taskNumber: string, projectName: string): Observable<IRequestObject> {
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/get/'+ taskNumber +'?project=' + projectName)
     // TODO Написать запрос на получение графа
   }
 
   // @ts-ignore
   makeGraph(taskNumber: string, projectName: string): Observable<IRequestObject> {
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/make/'+ taskNumber +'?project=' + projectName)
+
     // TODO Написать запрос на создание графа
   }
 
   // @ts-ignore
   deleteGraphs(projectName: string): Observable<IRequestObject> {
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/delete?project=' + projectName)
     // TODO Написать запрос на удаление графа
   }
 
@@ -56,6 +61,10 @@ export class DatabaseProjectServices {
 
   // @ts-ignore
   isEmpty(projectName: string): Observable<IRequestObject> {
+<<<<<<< HEAD:frontend/src/app/services/database-project.services.ts
     // TODO Написать запрос
+=======
+    return this.http.get<IRequestObject>('http://' + this.urlPath + '/api/v1/isEmpty?project=' + projectName)
+>>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674:web/src/app/services/database-project.services.ts
   }
 }

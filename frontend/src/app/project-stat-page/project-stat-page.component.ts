@@ -47,6 +47,8 @@ export class ProjectStatPageComponent implements OnInit {
         openTaskElem.remove()
         openTaskTitle.remove()
       } else {
+        console.log(info.data["categories"].length)
+
         if (info.data["categories"] == null) {
           openTaskElem.remove()
           openTaskTitle.textContent = "Гистограмма, отражающая время, которое задачи провели в открытом состоянии - " +
@@ -57,7 +59,8 @@ export class ProjectStatPageComponent implements OnInit {
           let count = []
           for (let i = 0; i < info.data["categories"].length; i++) {
             // @ts-ignore
-            count.push(info.data["count"][info.data["categories"][i]])
+            console.log("data:" + info.data["graphOneData"].find((item: { type: any; }) => item.type == info.data["categories"][i])["id"])
+            count.push(info.data["graphOneData"].find((item: { type: any; }) => item.type == info.data["categories"][i])["id"])
           }
           openTaskChartOptions.series?.push({
             name: this.projects[0],
@@ -243,7 +246,7 @@ export class ProjectStatPageComponent implements OnInit {
           complexityTaskTitle.remove()
         }
         else {
-          if (info.data["categories"] == null) {
+          if (info.data["categories"] == null) { //categories
             complexityTaskElem.remove()
             complexityTaskTitle.textContent = "График сложности задач - " +
               "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
@@ -253,7 +256,7 @@ export class ProjectStatPageComponent implements OnInit {
             let count = []
             for (let i = 0; i < info.data["categories"].length; i++) {
               // @ts-ignore
-              count.push(info.data["count"][info.data["categories"][i]])
+              count.push(info.data["graphFourData"].find((item: { type: any; }) => item.type == info.data["categories"][i])["count"])
             }
             complexityTaskChartOptions.series?.push({
               name: this.projects[0],

@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	configPath := flag.String("configPath", "config/config-backend.yaml", "Path to the config file")
+	configPath := flag.String("configPath", "backend/gateway/config/config-backend.yaml", "Path to the config file")
 	flag.Parse()
 
 	log := logger.CreateNewLogger()
