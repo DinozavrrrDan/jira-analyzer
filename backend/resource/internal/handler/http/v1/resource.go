@@ -284,7 +284,6 @@ func (handler *ResourceHandler) postProject(writer http.ResponseWriter, request 
 }
 
 func (handler *ResourceHandler) deleteProject(writer http.ResponseWriter, request *http.Request) {
-	fmt.Println("DELETE")
 	projectName := request.URL.Query()["project"]
 	if len(projectName) == 0 {
 		errorWriter(writer, handler.log, "error: no projects in request.", http.StatusBadRequest)

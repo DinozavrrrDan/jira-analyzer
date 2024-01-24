@@ -1,56 +1,42 @@
 version: "3.9"
 
 services:
-  postresql:
-    image: postgres:16-alpine3.18
-    container_name: psql
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: testdb
-      POSTGRES_USER: pguser
-      POSTGRES_PASSWORD: pgpwd
-      PGDATA: "/var/lib/postgresql/data/pgdata"
-    volumes:
-      - testdb-data:/var/lib/postgresql/data
-    networks:
-      - ps
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U habrpguser -d habrdb" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          cpus: '1'
-          memory: 5G
+      - "8080:80"
+    depends_on:
+      - backend-gateway
+      - backend-analytics
+      - backend-resource
+      - connector
 
-  pgadmin:
-    container_name: pgadmin_container
-    image: dpage/pgadmin4:7.2
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "habrpguser@habr.com"
-      PGADMIN_DEFAULT_PASSWORD: "pgadminpwd4habr"
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    volumes:
-       - pgadmin-data:/var/lib/pgadmin
+  backend-analytics:
+    build:
+      context: ./backend/analytics
+      dockerfile: Dockerfile
     ports:
-      - "5050:80"
-    restart: unless-stopped
-    deploy:
-       resources:
-        limits:
-           cpus: '0.5'
-           memory: 1G
-    networks:
-      - postgres
-volumes:
-  testdb-data:
-  pgadmin-data:
+      - "8002:8002"
 
-networks:
-  postgres:
-    driver: bridge
+  backend-resource:
+    build:
+      context: ./backend/resource
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+
+  backend-gateway:
+    build:
+      context: ./backend/gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+
+  connector:
+    build:
+      context: ./connector
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
