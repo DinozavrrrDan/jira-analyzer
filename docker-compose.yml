@@ -1,49 +1,42 @@
 version: "3.9"
 
 services:
-
-  app-db:
-    container_name: app-db
-    image: postgres:16-alpine3.18
-    environment:
-      POSTGRES_DB: testdb
-      POSTGRES_USER: pguser
-      POSTGRES_PASSWORD: pgpwd
-      PGDATA: "/var/lib/postgresql/data/pgdata"
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-    restart: unless-stopped
-
-  app-backend:
-    container_name: app-backend
-    build: .
-    env_file:
-      - .env
-    ports:
-      - "${HTTP_PORT}:${HTTP_PORT}"
+      - "8080:80"
     depends_on:
-      - postgres
-    restart: unless-stopped
+      - backend-gateway
+      - backend-analytics
+      - backend-resource
+      - connector
 
-  app-connector:
-    container_name: app-connector
-    build: .
-    env_file:
-      - .env
+  backend-analytics:
+    build:
+      context: ./backend/analytics
+      dockerfile: Dockerfile
     ports:
-      - "${HTTP_PORT}:${HTTP_PORT}"
-    depends_on:
-      - postgres
-    restart: unless-stopped
+      - "8002:8002"
 
-  app-web:
-    container_name: app-web
+  backend-resource:
+    build:
+      context: ./backend/resource
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
 
-volumes:
-  testdb-data:
+  backend-gateway:
+    build:
+      context: ./backend/gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+
+  connector:
+    build:
+      context: ./connector
+      dockerfile: Dockerfile
+    ports:
+      - "8003:8003"
