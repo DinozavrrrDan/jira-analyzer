@@ -13,6 +13,14 @@ type Link struct {
 	Href string `json:"href"`
 }
 
+type Project struct {
+	Id        int    `json:"Id"`
+	Key       string `json:"Key"`
+	Name      string `json:"Name"`
+	Link      string `json:"Link"`
+	Existence bool   `json:"Existence"`
+}
+
 type ResponseStruct struct {
 	Links    ListOfReferences `json:"_links"`
 	Info     interface{}      `json:"data"`
@@ -46,6 +54,13 @@ type IssueInfo struct {
 }
 
 type ProjectInfo struct {
-	Id    int    `json:"projectId"`
-	Title string `json:"title"`
+	Id                  int    `json:"projectId"`
+	Title               string `json:"title"`
+	IssueCount          int    `json:"issueCount"`
+	ClosedIssuesCount   int    `json:"closedIssuesCount"`
+	OpenedIssuesCount   int    `json:"openedIssuesCount"`
+	ResolvedIssuesCount int    `json:"resolvedIssuesCount"`
+	ReopenedIssueCount  int    `json:"reopenedIssueCount"`
+	ProgressIssuesCount int    `json:"progressIssuesCount"`
+	AverageTime         int    `json:"averageTime"`
 }

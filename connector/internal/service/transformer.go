@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
 	"time"
 )
@@ -16,11 +17,14 @@ func (dataTransformer *TransformerService) TransformData(issues []models.Issue) 
 	var transformedIssues []models.TransformedIssue
 	for _, issue := range issues {
 
-		createdTime, _ := time.Parse(time.DateTime, issue.Fields.CreatedTime)
-		closedTime, _ := time.Parse(time.DateTime, issue.Fields.ClosedTime)
-		updatedTime, _ := time.Parse(time.DateTime, issue.Fields.UpdatedTime)
-
-		timeSpent := closedTime.Sub(closedTime)
+		createdTime, _ := time.Parse("2006-01-02T15:04:05.999-0700", issue.Fields.CreatedTime)
+		closedTime, _ := time.Parse("2006-01-02T15:04:05.999-0700", issue.Fields.ClosedTime)
+		updatedTime, _ := time.Parse("2006-01-02T15:04:05.999-0700", issue.Fields.UpdatedTime)
+		if len(issue.Fields.ClosedTime) == 0 {
+			closedTime = createdTime.Add(time.Hour * 24 * 365 * 10)
+		}
+		timespent := closedTime.Sub(createdTime)
+		fmt.Print(timespent.Seconds())
 		transformedIssues = append(transformedIssues, models.TransformedIssue{
 			Project:     issue.Fields.Project.Name,
 			Author:      issue.Fields.Creator.Name,
@@ -34,11 +38,7 @@ func (dataTransformer *TransformerService) TransformData(issues []models.Issue) 
 			CreatedTime: createdTime,
 			ClosedTime:  closedTime,
 			UpdatedTime: updatedTime,
-<<<<<<< HEAD:connector/internal/service/transformer.go
-			TimeSpent:   int64(timeSpent),
-=======
-			Timespent:   int64(timeSpent),
->>>>>>> 77eb92a4ac4e65cecd3e27102698a8f5679caf6c:jiraConnector/transformer/transformer.go
+			TimeSpent:   int64(timespent.Seconds()),
 		})
 	}
 	return transformedIssues

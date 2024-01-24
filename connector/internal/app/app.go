@@ -40,7 +40,7 @@ func NewApp(cfg *config.Config, log *logger.Logger) (*App, error) {
 
 	repositories := repository.NewRepositories(db)
 
-	services := service.NewServices(deps, log, cfg)
+	services := service.NewServices(repositories, deps, log, cfg)
 
 	handlers := handler.NewHandler(services, repositories, log, cfg)
 

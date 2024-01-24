@@ -17,11 +17,11 @@ export class ProjectWithCheckboxComponent implements OnInit {
   constructor(private projectService: ProjectServices) {}
 
   ngOnInit(): void {
-    this.isChecked = this.project.Existence;
+    this.isChecked = false;
   }
 
   changed(isChecked: any) {
-    //console.log("Child", this.isChecked, this.project.Name)
+    console.log("Child", this.isChecked, this.project.Name)
     this.onChecked.emit(new CheckedProject(this.project.Name, this.isChecked, this.project.Id));
   }
 }

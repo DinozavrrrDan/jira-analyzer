@@ -28,11 +28,11 @@ func NewApp(cfg *config.Config, log *logger.Logger) (*App, error) {
 		cfg.DB.UserDB,
 		cfg.DB.PasswordDB,
 		cfg.DB.NameDB)
-	db, _ = sql.Open("postgres", sqlInfo)
-	/*	if err != nil {
-			return nil, fmt.Errorf(err.Error())
-		}
-	*/
+	db, err := sql.Open("postgres", sqlInfo)
+	if err != nil {
+		return nil, fmt.Errorf(err.Error())
+	}
+
 	repositories := repository.NewRepositories(db)
 
 	handlers := resourceHandler.NewHandler(repositories, log, cfg)

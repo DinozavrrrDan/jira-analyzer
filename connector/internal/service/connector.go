@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/DinozvrrDan/jira-analyzer/connector/config"
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
+	"github.com/DinozvrrDan/jira-analyzer/connector/internal/repository"
 	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
 	"io"
 	"math"
@@ -16,16 +17,18 @@ import (
 )
 
 type ConnectorService struct {
-	log *logger.Logger
-	cfg *config.Config
-	url string
+	connectorRep repository.IConnectorRepository
+	log          *logger.Logger
+	cfg          *config.Config
+	url          string
 }
 
-func NewConnectorService(jiraUrl string, log *logger.Logger, cfg *config.Config) *ConnectorService {
+func NewConnectorService(connectorRep repository.IConnectorRepository, jiraUrl string, log *logger.Logger, cfg *config.Config) *ConnectorService {
 	return &ConnectorService{
-		log: log,
-		cfg: cfg,
-		url: jiraUrl,
+		connectorRep: connectorRep,
+		log:          log,
+		cfg:          cfg,
+		url:          jiraUrl,
 	}
 }
 
@@ -56,13 +59,14 @@ func (connector *ConnectorService) GetProjectIssues(projectName string) ([]model
 		}
 
 		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			return nil, err
+		}
 
 		var issueResponse models.IssuesList
 		err = json.Unmarshal(body, &issueResponse)
 
 		if err != nil {
-			connector.log.Log(logger.ERROR, err.Error())
-
 			return nil, err
 		}
 
@@ -192,16 +196,12 @@ func (connector *ConnectorService) GetProjects(limit int, page int, search strin
 	body, err := io.ReadAll(response.Body)
 
 	if err != nil {
-		connector.log.Log(logger.ERROR, err.Error())
-
 		return []models.Project{}, models.Page{}, err
 	}
 
 	var jiraProjects []models.JiraProject
 	err = json.Unmarshal(body, &jiraProjects) //получаем информацию через сериализацию
 	if err != nil {
-		connector.log.Log(logger.ERROR, err.Error())
-
 		return []models.Project{}, models.Page{}, err
 	}
 
@@ -213,9 +213,12 @@ func (connector *ConnectorService) GetProjects(limit int, page int, search strin
 	for _, element := range jiraProjects {
 		if filterBySearch(element.Name, search) {
 			counterOfProjects++
-
+			existence, err := connector.connectorRep.CheckProjectExists(element.Name)
+			if err != nil {
+				return []models.Project{}, models.Page{}, err
+			}
 			projects = append(projects, models.Project{
-				Existence: false,
+				Existence: existence,
 				Id:        0,
 				Name:      element.Name,
 				Link:      element.Link,

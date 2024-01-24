@@ -22,7 +22,6 @@ export class ProjectComponent implements OnInit {
   addMyProject(project: IProj) {
     if (!this.adding) {
       this.projectService.addProject(project.Key).subscribe(resp =>{
-
       },error => {
         this.adding = !this.adding
         if (error.status == 0){
@@ -34,7 +33,7 @@ export class ProjectComponent implements OnInit {
       });
       } else {
       console.log(this.project.Id);
-        this.projectService.deleteProject(project.Key).subscribe(resp => {
+        this.projectService.deleteProject(project.Name).subscribe(resp => {
 
         },
           error => {

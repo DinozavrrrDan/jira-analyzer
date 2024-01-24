@@ -224,3 +224,17 @@ func (connectorRepository *ConnectorRepository) checkIssueExists(issueKey string
 
 	return issueId != 0, nil
 }
+
+// CheckProjectExists проверяет наличие issue заданного title
+func (connectorRepository *ConnectorRepository) CheckProjectExists(title string) (bool, error) {
+	var projectId int64
+	row := connectorRepository.db.QueryRow("SELECT id FROM project where title = $1", title)
+
+	if err := row.Scan(&projectId); err != nil {
+		if !errors.Is(err, sql.ErrNoRows) {
+			return false, fmt.Errorf("checkIssueExists error: %w", err)
+		}
+	}
+
+	return projectId != 0, nil
+}

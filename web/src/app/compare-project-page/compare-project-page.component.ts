@@ -32,7 +32,7 @@ export class CompareProjectPageComponent implements OnInit {
 
   ngOnInit(): void {
     for (let i = 0; i < this.projects.length; i++) {
-      this.dbProjectService.getProjectStatByID(this.ids[i]).subscribe(projects => {
+      this.dbProjectService.getProjectStatByID(this.projects[i]).subscribe(projects => {
         this.resultReq[i] = projects.data
       })
     }
@@ -78,12 +78,12 @@ class ReqData {
   Id: number;
   Key: string;
   Name: string;
-  allIssuesCount: number;
+  issueCount: number;
   averageIssuesCount: string;
   averageTime: number;
-  closeIssuesCount: number;
-  openIssuesCount: number;
+  closedIssuesCount: number;
+  openedIssuesCount: number;
   resolvedIssuesCount: number;
-  reopenedIssuesCount: number;
+  reopenedIssueCount: number;
   progressIssuesCount: number;
 }

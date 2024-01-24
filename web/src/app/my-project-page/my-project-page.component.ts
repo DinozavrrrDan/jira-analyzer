@@ -24,15 +24,19 @@ export class MyProjectPageComponent implements OnInit {
       this.myProjects = projects.data
       this.loading = false
       this.inited = true
+      console.log(projects.data.length == 0)
+      console.log(projects.data)
     }, error => {
       // TODO Обработать ошибки от сервера
     })
+
   }
 
   childOnChecked(project: CheckedProject){
     if (project.Checked) {
+      console.log(project.Name, project.Id)
       this.checked.set(project.Name, project.Id)
-    }else if (this.checked.has(project.Name)){
+    } else if (this.checked.has(project.Name)){
       this.checked.delete(project.Name)
     }
   }
