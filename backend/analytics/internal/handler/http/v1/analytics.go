@@ -1,12 +1,6 @@
 package v1
 
 import (
-<<<<<<< HEAD
-	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/config"
-	repository "github.com/DinozvrrDan/jira-analyzer/backend/analytics/internal/repository"
-	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/pkg/logger"
-	"github.com/gorilla/mux"
-=======
 	"encoding/json"
 	"fmt"
 	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/config"
@@ -16,7 +10,6 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
->>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674
 )
 
 type AnalyticsHandler struct {
@@ -34,9 +27,6 @@ func NewAnalyticsHandler(repositories *repository.Repositories, log *logger.Logg
 }
 
 func (handler *AnalyticsHandler) GetAnalyticsHandler(router *mux.Router) {
-<<<<<<< HEAD
-	//	router.HandleFunc().Methods(http.MethodPost)
-=======
 	router.HandleFunc("/get/{group:[1-6]}", handler.getGraph).Methods(http.MethodGet)
 	router.HandleFunc("/make/{group:[1-6]}", handler.makeGraph).Methods(http.MethodGet)
 	router.HandleFunc("/delete", handler.deleteGraphs).Methods(http.MethodGet)
@@ -270,5 +260,4 @@ func (handler *AnalyticsHandler) getGraphOneCompare(writer http.ResponseWriter, 
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
->>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674
 }
