@@ -44,7 +44,6 @@ const jiraRequestPart2 = "&expand=changelog&startAt=0&maxResults=1"
 func (connector *ConnectorService) GetProjectIssues(projectName string) ([]models.Issue, error) {
 	isRequestNotCompleted := true
 	timeUntilNewRequest := connector.cfg.Connector.MinTimeSleep
-
 	var issues []models.Issue
 
 	for isRequestNotCompleted && timeUntilNewRequest <= connector.cfg.Connector.MaxTimeSleep {

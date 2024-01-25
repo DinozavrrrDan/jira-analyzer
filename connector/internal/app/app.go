@@ -45,6 +45,7 @@ func NewApp(cfg *config.Config, log *logger.Logger) (*App, error) {
 	handlers := handler.NewHandler(services, repositories, log, cfg)
 
 	router := mux.NewRouter()
+
 	handlers.GetRouter(router)
 
 	server := &http.Server{

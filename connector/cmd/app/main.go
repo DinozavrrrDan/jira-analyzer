@@ -17,8 +17,6 @@ func main() {
 	cfg, err := config.NewConfig(*configPath)
 
 	if err != nil {
-		fmt.Println(err.Error())
-
 		log.Log(logger.ERROR, err.Error())
 		panic(err)
 	}
@@ -26,8 +24,6 @@ func main() {
 	newApp, err := app.NewApp(cfg, log)
 
 	if err != nil {
-		fmt.Println(err.Error())
-
 		log.Log(logger.ERROR, err.Error())
 		panic(err)
 	}
@@ -43,7 +39,6 @@ func main() {
 	}(newApp)
 
 	if err = newApp.Run(); err != nil {
-		fmt.Println(err.Error())
 		log.Log(logger.ERROR, err.Error())
 		panic(err)
 	}
