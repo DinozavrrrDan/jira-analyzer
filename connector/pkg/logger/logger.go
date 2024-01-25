@@ -27,8 +27,8 @@ func CreateNewLogger() *Logger {
 
 	logger.SetLevel(logrus.TraceLevel) //Trace level - самый объемный по информации
 
-	logs, _ := os.OpenFile("./././logs/logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	errors, _ := os.OpenFile("./././logs/err_logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	logs, _ := os.OpenFile("connector/logs/logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	errors, _ := os.OpenFile("connector/logs/err_logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 
 	logFile := io.MultiWriter(logs)
 	errFile := io.MultiWriter(os.Stdout, errors)

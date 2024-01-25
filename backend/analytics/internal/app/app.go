@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/config"
-	handler "github.com/DinozvrrDan/jira-analyzer/backend/analytics/internal/handler/http"
+	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/internal/handler"
 	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/internal/repository"
 	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/pkg/logger"
 	"github.com/gorilla/mux"

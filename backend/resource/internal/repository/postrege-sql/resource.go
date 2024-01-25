@@ -74,30 +74,52 @@ func (resourceRepository *ResourceRepository) GetIssueInfo(id int) (models.Issue
 	return issueInfo, nil
 }
 
+const openStatus = "Open"
+const closedStatus = "Closed"
+const resolvedStatus = "Resolved"
+const reopenedStatus = "Reopened"
+const progressStatus = "In Progress"
+
 func (resourceRepository *ResourceRepository) GetProjectInfo(title string) (models.ProjectInfo, error) {
 	id, _ := resourceRepository.getProjectId(title)
 	projectInfo := models.ProjectInfo{}
-	openStatus := "Open"
-	closedStatus := "Closed"
-	resolvedStatus := "Resolved"
-	reopenedStatus := "Reopened"
-	progressStatus := "In Progress"
-	row := resourceRepository.db.QueryRow("SELECT id, title, (SELECT COUNT(*) from issues where projectid = $1) as issuesCount, (SELECT COUNT(*) from issues where projectid = $1 and status = $2) as openedIssuesCount, (SELECT COUNT(*) from issues where projectid = $1 and status = $3) as closedIssuesCount, (SELECT COUNT(*) from issues where projectid = $1 and status = $4) as resolvedIssuesCount, (SELECT COUNT(*) from issues where projectid = $1 and status = $5), (SELECT COUNT(*) from issues where projectid = $1 and status = $6) as progressIssuesCount FROM project WHERE title = $7", id, openStatus, closedStatus, resolvedStatus, reopenedStatus, progressStatus, title)
 
-	if err := row.Scan(&projectInfo.Id, &projectInfo.Title, &projectInfo.IssueCount, &projectInfo.OpenedIssuesCount, &projectInfo.ClosedIssuesCount, &projectInfo.ResolvedIssuesCount, &projectInfo.ReopenedIssueCount, &projectInfo.ProgressIssuesCount); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return models.ProjectInfo{}, fmt.Errorf("GetProjectInfo: no such project %s", title)
-		}
+	err := resourceRepository.db.QueryRow("SELECT id, title,"+
+		" (SELECT COUNT(*) from issues where projectid = $1) as issuesCount,"+
+		" (SELECT COUNT(*) from issues where projectid = $1 and status = $2) as openedIssuesCount,"+
+		" (SELECT COUNT(*) from issues where projectid = $1 and status = $3) as closedIssuesCount,"+
+		" (SELECT COUNT(*) from issues where projectid = $1 and status = $4) as resolvedIssuesCount,"+
+		" (SELECT COUNT(*) from issues where projectid = $1 and status = $5) as reopenedIssueCount,"+
+		" (SELECT COUNT(*) from issues where projectid = $1 and status = $6) as progressIssuesCount"+
+		" FROM project WHERE title = $7",
+		id, openStatus, closedStatus, resolvedStatus, reopenedStatus, progressStatus, title).
+		Scan(
+			&projectInfo.Id,
+			&projectInfo.Title,
+			&projectInfo.IssueCount,
+			&projectInfo.OpenedIssuesCount,
+			&projectInfo.ClosedIssuesCount,
+			&projectInfo.ResolvedIssuesCount,
+			&projectInfo.ReopenedIssueCount,
+			&projectInfo.ProgressIssuesCount)
+
+	if err != nil {
 		return models.ProjectInfo{}, fmt.Errorf("GetProjectInfo: %v", err)
 	}
 
-	//avrTime, err := resourceRepository.GetAvrgActiveTime(id)
-	//projectInfo.AverageTime = avrTime
-	//if err != nil {
-	//	return models.ProjectInfo{}, fmt.Errorf("GetProjectInfo: %v", err)
-	//}
+	avrTime, err := resourceRepository.GetAvrgActiveTime(id)
 
-	fmt.Println(projectInfo)
+	if err != nil {
+		return models.ProjectInfo{}, fmt.Errorf("GetProjectInfo: %v", err)
+	}
+	projectInfo.AverageTime = int(avrTime)
+
+	avrIssue, err := resourceRepository.GetNewProjectsAvrgAmount(id)
+
+	if err != nil {
+		return models.ProjectInfo{}, fmt.Errorf("GetProjectInfo: %v", err)
+	}
+	projectInfo.AverageIssue = int(avrIssue)
 
 	return projectInfo, nil
 }
@@ -187,51 +209,12 @@ func (resourceRepository *ResourceRepository) DeleteProject(title string) error 
 func (resourceRepository *ResourceRepository) getProjectId(projectTitle string) (int64, error) {
 	var projectId int64
 
-	row := resourceRepository.db.QueryRow("SELECT id FROM project where title = $1", projectTitle)
-
-	if err := row.Scan(&projectId); err != nil {
-		if !errors.Is(err, sql.ErrNoRows) {
-			return projectId, fmt.Errorf("getProjectId error: %w", err)
-		}
+	err := resourceRepository.db.QueryRow("SELECT id FROM project where title = $1", projectTitle).Scan(&projectId)
+	if err != nil {
+		return 0, fmt.Errorf("getProjectId error: %w", err)
 	}
 
 	return projectId, nil
-}
-
-func (resourceRepository *ResourceRepository) DeleteAuthor(name string) error {
-	if err := resourceRepository.db.QueryRow("DELETE FROM author WHERE name = $1", name); err != nil {
-		return fmt.Errorf("DeleteAuthor error: %w", err)
-	}
-
-	return nil
-}
-
-func (resourceRepository *ResourceRepository) DeleteAssignee(name string) error {
-	if err := resourceRepository.db.QueryRow("DELETE FROM author WHERE name = $1", name); err != nil {
-		return fmt.Errorf("DeleteAssignee error: %w", err)
-	}
-
-	return nil
-}
-
-func (resourceRepository *ResourceRepository) DeleteIssue(issue models.IssueInfo) error {
-	if err := resourceRepository.DeleteProject(issue.Project.Title); err != nil {
-		return fmt.Errorf("DeleteProject error: %w", err)
-	}
-
-	if err := resourceRepository.DeleteAuthor(issue.Author); err != nil {
-		return fmt.Errorf("DeleteProject error: %w", err)
-	}
-
-	if err := resourceRepository.DeleteAssignee(issue.Assignee); err != nil {
-		return fmt.Errorf("DeleteProject error: %w", err)
-	}
-
-	if err := resourceRepository.db.QueryRow("DELETE FROM issues WHERE key = $1", issue.Key); err != nil {
-		return fmt.Errorf("DeleteProject error: %w", err)
-	}
-
-	return nil
 }
 
 func (resourceRepository *ResourceRepository) DeleteAuthors(ids []int64) error {
@@ -307,7 +290,10 @@ func (resourceRepository *ResourceRepository) GetAvrgActiveTime(projectId int64)
 	}
 
 	result /= float64(resolvedProjectsAmount)
-	return result / (60.0 * 60.0), nil
+
+	const minute = 60.0
+	const hour = 60.0
+	return result / (minute * hour), nil
 }
 
 func (resourceRepository *ResourceRepository) GetNewProjectsAvrgAmount(projectId int64) (float64, error) {

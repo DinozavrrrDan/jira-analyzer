@@ -1,5 +1,15 @@
 package models
 
+type GraphOneData struct {
+	SpentTime string `json:"spentTime"`
+	Count     int    `json:"count"`
+}
+
+type GraphOne struct {
+	GraphOneData []GraphOneData `json:"graphOneData"`
+	Categories   []string       `json:"categories"`
+}
+
 type GraphFourData struct {
 	Type  string `json:"type"`
 	Count int    `json:"count"`
@@ -10,17 +20,28 @@ type GraphFour struct {
 	Categories    []string        `json:"categories"`
 }
 
-type GraphOneData struct {
-	Id       int    `json:"id"`
-	OpenTime uint64 `json:"openTime"`
+type GraphFiveData struct {
+	Priority string `json:"priority"`
+	Count    int    `json:"count"`
 }
 
-type GraphOne struct {
-	GraphOneData []GraphOneData `json:"graphOneData"`
+type GraphFive struct {
+	GraphFiveData []GraphFiveData `json:"graphFiveData"`
+	Categories    []string        `json:"categories"`
+}
+
+type GraphSixData struct {
+	Priority string `json:"priority"`
+	Count    int    `json:"count"`
+}
+
+type GraphSix struct {
+	GraphSixData []GraphSixData `json:"graphSixData"`
 	Categories   []string       `json:"categories"`
 }
 
 type CompareGraphsOne struct {
-	Count     int        `json:"count"`
-	GraphsOne []GraphOne `json:"graphsOne"`
+	Counter    int        `json:"counter"`
+	GraphsOne  []GraphOne `json:"graphsOne"`
+	Categories []string   `json:"categories"`
 }
