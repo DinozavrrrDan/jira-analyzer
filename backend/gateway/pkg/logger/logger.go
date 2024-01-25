@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"io"
 	"os"
 
@@ -26,6 +27,7 @@ func CreateNewLogger() *Logger {
 	logger := logrus.New()
 
 	logger.SetLevel(logrus.TraceLevel) //Trace level - самый объемный по информации
+	logger.SetFormatter(&logrus.JSONFormatter{})
 
 	logs, _ := os.OpenFile("backend/gateway/logs/logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	errors, _ := os.OpenFile("backend/gateway/logs/err_logs.log", os.O_APPEND|os.O_WRONLY, os.ModeAppend)
@@ -50,9 +52,11 @@ func (log *Logger) Log(logLevel LogLevel, logMessage string) {
 		log.logger.Warning(logMessage)
 		log.logger.Out = *log.errFile
 		log.logger.Warning(logMessage)
+		fmt.Print(logMessage)
 	} else if logLevel == ERROR {
-		log.logger.Error(logLevel)
+		log.logger.Error(logMessage)
 		log.logger.Out = *log.errFile
-		log.logger.Error(logLevel)
+		log.logger.Error(logMessage)
+		fmt.Print(logMessage)
 	}
 }
