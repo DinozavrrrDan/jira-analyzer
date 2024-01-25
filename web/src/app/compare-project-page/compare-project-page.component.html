@@ -17,7 +17,7 @@
       <tr class="soft_stat_header" id="soft_stat_header">
         <th>Сухая статистика</th>
         <th *ngFor="let project of projects">
-          {{project.toString()}}
+          &nbsp; {{project.toString()}} &nbsp;
         </th>
       </tr>
       </thead>
@@ -65,9 +65,9 @@
         </td>
       </tr>
       <tr id = "average_task_count">
-        <td>Среднее количество заведенных задач в день за последнюю неделю</td>
+        <td>Среднее количество заведенных задач в день за последнюю неделю&nbsp;</td>
         <td *ngFor="let stat of resultReq">
-          {{stat.averageIssuesCount}}
+          {{stat.averageIssue}}
         </td>
       </tr>
       </tbody>
