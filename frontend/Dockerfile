@@ -1,5 +1,5 @@
 #STAGE 1
-FROM node:14 AS build
+FROM node:18-alpine AS build
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install

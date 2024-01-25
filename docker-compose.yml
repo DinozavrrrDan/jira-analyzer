@@ -2,9 +2,7 @@ version: "3.9"
 
 services:
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
     ports:
       - "8080:80"
     depends_on:
@@ -14,35 +12,39 @@ services:
       - connector
 
   backend-analytics:
-    build:
-      context: ./backend/analytics
-      dockerfile: Dockerfile
+    build: ./backend/analytics
     ports:
       - "8002:8002"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   backend-resource:
-    build:
-      context: ./backend/resource
-      dockerfile: Dockerfile
+    build: ./backend/resource
     ports:
       - "8001:8001"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   backend-gateway:
-    build:
-      context: ./backend/gateway
-      dockerfile: Dockerfile
+    build: ./backend/gateway
     ports:
       - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   connector:
-    build:
-      context: ./connector
-      dockerfile: Dockerfile
+    build: ./connector
     ports:
       - "8003:8003"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   postgres:
-    image: postgres:latest
+    image: postgres:14.8-alpine3.18
     environment:
       POSTGRES_DB: "testdb"
       POSTGRES_USER: "pguser"
@@ -52,6 +54,12 @@ services:
       - db-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U pguser -d testdb" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped
 
 volumes:
   db-data:
