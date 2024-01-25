@@ -11,4 +11,4 @@ RUN go build -o main cmd/app/main.go
 
 EXPOSE 8003
 
-CMD ./main
+CMD ["./main"]

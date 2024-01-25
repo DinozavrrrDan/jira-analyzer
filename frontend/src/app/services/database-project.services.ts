@@ -61,10 +61,6 @@ export class DatabaseProjectServices {
 
   // @ts-ignore
   isEmpty(projectName: string): Observable<IRequestObject> {
-<<<<<<< HEAD:frontend/src/app/services/database-project.services.ts
-    // TODO Написать запрос
-=======
     return this.http.get<IRequestObject>('http://' + this.urlPath + '/api/v1/isEmpty?project=' + projectName)
->>>>>>> 6a15cb1650a9c1e304607e8f9b48d77b20ebf674:web/src/app/services/database-project.services.ts
   }
 }
