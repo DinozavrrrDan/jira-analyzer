@@ -2,7 +2,6 @@ package v1
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/DinozvrrDan/jira-analyzer/connector/config"
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/repository"
@@ -44,19 +43,28 @@ func (handler *ConnectorHandler) UpdateProject(writer http.ResponseWriter, reque
 		errorWriter(writer, handler.log, "error: no projects in request.", http.StatusBadRequest)
 		return
 	}
+
 	issues, err := handler.connectorSvc.GetProjectIssues(projectName[0])
 	if err != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	response, err := json.MarshalIndent(issues, "", "\t")
-	writer.Write(response)
 	if err != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	_, err = writer.Write(response)
+	if err != nil {
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	transformedIssues := handler.transformerSvc.TransformData(issues)
 	err = handler.connectorRep.PushIssues(transformedIssues)
+
 	if err != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
@@ -83,13 +91,13 @@ func (handler *ConnectorHandler) GetProjects(writer http.ResponseWriter, request
 
 	var issueResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
-			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", 1)},
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: "/api/v1/connector/projects"},
 		},
 		Info:    projects,
-		Message: "Hello from connector",
+		Message: "Connector get projects",
 		Name:    "",
 		PageInfo: models.Page{
 			TotalPageCount:     pages.TotalPageCount,

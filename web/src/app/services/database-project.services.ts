@@ -30,20 +30,21 @@ export class DatabaseProjectServices {
   }
 
   // @ts-ignore
-  getComplitedGraph(taskNumber: string, projectName: Array<string>): Observable<IRequestObject> {
-    this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/compare/' + taskNumber + '?project=' + projectName.toString())
+  getCompletedGraph(taskNumber: string, projectName: Array<string>): Observable<IRequestObject> {
+    console.log('http://' + this.urlPath + '/api/v1/graph/compare/' + taskNumber + '?project=' + projectName.toString())
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/compare/' + taskNumber + '?project=' + projectName.toString())
     // TODO Написать запрос на получение сравнения
   }
 
   // @ts-ignore
   getGraph(taskNumber: string, projectName: string): Observable<IRequestObject> {
-    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/get/'+ taskNumber +'?project=' + projectName)
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/get/' + taskNumber + '?project=' + projectName)
     // TODO Написать запрос на получение графа
   }
 
   // @ts-ignore
   makeGraph(taskNumber: string, projectName: string): Observable<IRequestObject> {
-    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/make/'+ taskNumber +'?project=' + projectName)
+    return this.http.get<IRequest>('http://' + this.urlPath + '/api/v1/graph/make/' + taskNumber + '?project=' + projectName)
 
     // TODO Написать запрос на создание графа
   }

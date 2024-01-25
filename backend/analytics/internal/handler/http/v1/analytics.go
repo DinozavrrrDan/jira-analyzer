@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type AnalyticsHandler struct {
@@ -28,9 +29,7 @@ func NewAnalyticsHandler(repositories *repository.Repositories, log *logger.Logg
 
 func (handler *AnalyticsHandler) GetAnalyticsHandler(router *mux.Router) {
 	router.HandleFunc("/get/{group:[1-6]}", handler.getGraph).Methods(http.MethodGet)
-	router.HandleFunc("/make/{group:[1-6]}", handler.makeGraph).Methods(http.MethodGet)
-	router.HandleFunc("/delete", handler.deleteGraphs).Methods(http.MethodGet)
-	router.HandleFunc("/compare/{group:[1-6]}", handler.getGraph1).Methods(http.MethodGet)
+	router.HandleFunc("/compare/{group:[1-6]}", handler.compareGraph).Methods(http.MethodGet)
 }
 
 func (handler *AnalyticsHandler) getGraph(writer http.ResponseWriter, request *http.Request) {
@@ -40,61 +39,31 @@ func (handler *AnalyticsHandler) getGraph(writer http.ResponseWriter, request *h
 		errorWriter(writer, handler.log, "error: invalid group request.", http.StatusBadRequest)
 		return
 	}
-	projectName := request.URL.Query()["project"]
-	if len(projectName) == 0 {
-		errorWriter(writer, handler.log, "error: no projects in request.", http.StatusBadRequest)
-		return
-	}
 
 	if group == 1 {
-		fmt.Println("GROUP 1")
 		handler.getGraph1(writer, request)
-	} else if group == 2 {
-		fmt.Println("GROUP 2")
 	} else if group == 4 {
 		handler.getGraph4(writer, request)
+	} else if group == 5 {
+		handler.getGraph5(writer, request)
+	} else if group == 6 {
+		handler.getGraph6(writer, request)
 	} else {
-		errorWriter(writer, handler.log, "error: invalid group.", http.StatusBadRequest)
+		errorWriter(writer, handler.log, "error: invalid group number.", http.StatusBadRequest)
 		return
 	}
 }
-func (handler *AnalyticsHandler) makeGraph(writer http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
-	group, err := strconv.Atoi(vars["group"])
-	if err != nil {
-		errorWriter(writer, handler.log, "error: invalid group request.", http.StatusBadRequest)
-		return
-	}
-	projectName := request.URL.Query()["project"]
-	if len(projectName) == 0 {
-		errorWriter(writer, handler.log, "error: no projects in request.", http.StatusBadRequest)
-		return
-	}
 
-	if group == 1 {
-		fmt.Println("GROUP 1")
-	} else if group == 2 {
-		fmt.Println("GROUP 2")
-	} else if group == 4 {
-		handler.getGraph4(writer, request)
-	} else {
-		errorWriter(writer, handler.log, "error: invalid group.", http.StatusBadRequest)
-		return
-	}
-}
-func (handler *AnalyticsHandler) deleteGraphs(writer http.ResponseWriter, request *http.Request) {
-	projectName := request.URL.Query()["project"]
-	if len(projectName) == 0 {
-		errorWriter(writer, handler.log, "error: no projects in request.", http.StatusBadRequest)
-		return
-	}
-	handler.getGraph4(writer, request)
-}
 func (handler *AnalyticsHandler) compareGraph(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	group, err := strconv.Atoi(vars["group"])
+
 	if err != nil {
 		errorWriter(writer, handler.log, "error: invalid group request.", http.StatusBadRequest)
+		return
+	}
+	if group != 1 {
+		errorWriter(writer, handler.log, "error: invalid group.", http.StatusBadRequest)
 		return
 	}
 	projectName := request.URL.Query()["project"]
@@ -103,14 +72,55 @@ func (handler *AnalyticsHandler) compareGraph(writer http.ResponseWriter, reques
 		return
 	}
 
-	if group == 1 {
-		fmt.Println("GROUP 1")
-	} else if group == 2 {
-		fmt.Println("GROUP 2")
-	} else if group == 4 {
-		handler.getGraph4(writer, request)
-	} else {
-		errorWriter(writer, handler.log, "error: invalid group.", http.StatusBadRequest)
+	names := strings.Split(projectName[0], ",")
+
+	var compareGraphs []models.GraphOne
+	categories := []string{"1 hour", "3 hours", "6 hours", "12 hour", "24 hour",
+		"3 days", "7 days", "14 days", "more 30 days"}
+
+	for i := 0; i < len(names); i++ {
+		graphData, err := handler.analyticsRep.GetGraphsOneData(names[i])
+
+		if err != nil {
+			errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		compareGraphs = append(compareGraphs,
+			models.GraphOne{
+				GraphOneData: graphData,
+				Categories:   categories,
+			})
+	}
+
+	var projectResponse = models.ResponseStruct{
+		Links: models.ListOfReferences{
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: fmt.Sprintf("/api/v1/graph/compare/%d", group)},
+		},
+		Info: models.CompareGraphsOne{
+			GraphsOne:  compareGraphs,
+			Counter:    len(names),
+			Categories: categories,
+		},
+		Message: "",
+		Name:    "",
+		Status:  true,
+	}
+
+	response, err := json.MarshalIndent(projectResponse, "", "\t")
+
+	if err != nil {
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	_, err = writer.Write(response)
+
+	if err != nil {
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
 }
@@ -132,9 +142,10 @@ func (handler *AnalyticsHandler) getGraph4(writer http.ResponseWriter, request *
 
 	var projectResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: fmt.Sprintf("/api/v1/graph/%d", 4)},
 		},
 		Info: models.GraphFour{
 			GraphFourData: graphsData,
@@ -160,33 +171,90 @@ func (handler *AnalyticsHandler) getGraph4(writer http.ResponseWriter, request *
 	}
 }
 
-func (handler *AnalyticsHandler) getGraph1(writer http.ResponseWriter, request *http.Request) {
+func (handler *AnalyticsHandler) getGraph5(writer http.ResponseWriter, request *http.Request) {
 	projectName := request.URL.Query()["project"]
 	if len(projectName) == 0 {
 		errorWriter(writer, handler.log, "error: no projects in request.", http.StatusBadRequest)
 		return
 	}
 
-	graphData, err := handler.analyticsRep.GetGraphsOneData(projectName[0])
+	graphsData, err := handler.analyticsRep.GetGraphsFiveData(projectName[0])
 
 	if err != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
-	categories, err := handler.analyticsRep.GetGraphsOneCategories(projectName[0])
+	fmt.Println("graphData")
+	categories, err := handler.analyticsRep.GetGraphsFiveCategories(projectName[0])
+
 	if err != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
 	}
+	fmt.Println("categories")
 
 	var projectResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: fmt.Sprintf("/api/v1/graph/%d", 5)},
 		},
-		Info: models.GraphOne{
-			GraphOneData: graphData,
+		Info: models.GraphFive{
+			GraphFiveData: graphsData,
+			Categories:    categories,
+		},
+		Message: "",
+		Name:    "",
+		Status:  true,
+	}
+
+	response, err := json.MarshalIndent(projectResponse, "", "\t")
+
+	if err != nil {
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	_, err = writer.Write(response)
+
+	if err != nil {
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
+		return
+	}
+}
+
+func (handler *AnalyticsHandler) getGraph6(writer http.ResponseWriter, request *http.Request) {
+	projectName := request.URL.Query()["project"]
+	if len(projectName) == 0 {
+		errorWriter(writer, handler.log, "error: no projects in request.", http.StatusBadRequest)
+		return
+	}
+
+	graphsData, err := handler.analyticsRep.GetGraphsSixData(projectName[0])
+
+	if err != nil {
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println("graphData")
+	categories, err := handler.analyticsRep.GetGraphsSixCategories(projectName[0])
+
+	if err != nil {
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println("categories")
+
+	var projectResponse = models.ResponseStruct{
+		Links: models.ListOfReferences{
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: fmt.Sprintf("/api/v1/graph/%d", 6)},
+		},
+		Info: models.GraphSix{
+			GraphSixData: graphsData,
 			Categories:   categories,
 		},
 		Message: "",
@@ -209,39 +277,34 @@ func (handler *AnalyticsHandler) getGraph1(writer http.ResponseWriter, request *
 	}
 }
 
-func (handler *AnalyticsHandler) getGraphOneCompare(writer http.ResponseWriter, request *http.Request) {
-	fmt.Println("GET GRAPH")
+func (handler *AnalyticsHandler) getGraph1(writer http.ResponseWriter, request *http.Request) {
+
 	projectName := request.URL.Query()["project"]
 	if len(projectName) == 0 {
-		fmt.Println("lenth 0")
 		errorWriter(writer, handler.log, "error: no projects in request.", http.StatusBadRequest)
 		return
 	}
 
-	/*var graphs models.CompareGraphsOne
-	for i := 0; i < len(projectName); i++ {
-		graphData, err := handler.analyticsRep.GetGraphsOneData(projectName[i])
-		graph := models.GraphOne{GraphOneData: graphData}
-		if err != nil {
-			errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
-			return
-		}
-		graphsOne := append(graphs, graph)
+	graphData, err := handler.analyticsRep.GetGraphsOneData(projectName[0])
+
+	if err != nil {
+		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
+		return
 	}
-	graphs, err := handler.analyticsRep.GetGraphsOneData(projectName[0])*/
-	//
-	//if err != nil {
-	//	errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
-	//	return
-	//}
+
+	categories := []string{"1 hour", "3 hours", "6 hours", "12 hour", "24 hour", "3 days", "7 days", "14 days", "more 30 days"}
 
 	var projectResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: fmt.Sprintf("/api/v1/graph/%d", 1)},
 		},
-		//Info:    graphs,
+		Info: models.GraphOne{
+			GraphOneData: graphData,
+			Categories:   categories,
+		},
 		Message: "",
 		Name:    "",
 		Status:  true,

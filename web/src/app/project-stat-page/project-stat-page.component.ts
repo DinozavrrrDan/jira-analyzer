@@ -59,8 +59,8 @@ export class ProjectStatPageComponent implements OnInit {
           let count = []
           for (let i = 0; i < info.data["categories"].length; i++) {
             // @ts-ignore
-            console.log("data:" + info.data["graphOneData"].find((item: { type: any; }) => item.type == info.data["categories"][i])["id"])
-            count.push(info.data["graphOneData"].find((item: { type: any; }) => item.type == info.data["categories"][i])["id"])
+            console.log("data:" + info.data["graphOneData"].find((item: { spentTime: any; }) => item.spentTime == info.data["categories"][i])["count"])
+            count.push(info.data["graphOneData"].find((item: { spentTime: any; }) => item.spentTime == info.data["categories"][i])["count"])
           }
           openTaskChartOptions.series?.push({
             name: this.projects[0],
@@ -74,168 +74,168 @@ export class ProjectStatPageComponent implements OnInit {
 
 
 
-    let openStateElem = document.getElementById('open-state') as HTMLElement;
-    let resolveStateElem = document.getElementById('resolve-state') as HTMLElement;
-    let progressStateElem = document.getElementById('progress-state') as HTMLElement;
-    let reopenStateElem = document.getElementById('reopen-state') as HTMLElement;
-    let openStateTitle = document.getElementById('open-state-title') as HTMLElement;
-    let resolveStateTitle = document.getElementById('resolve-state-title') as HTMLElement;
-    let progressStateTitle = document.getElementById('progress-state-title') as HTMLElement;
-    let reopenStateTitle = document.getElementById('reopen-state-title') as HTMLElement;
-
-
-    this.dbProjectService.getGraph("2", this.projects[0]).subscribe(info => {
-      if (info.data == null) {
-        openStateElem.remove()
-        resolveStateElem.remove()
-        progressStateElem.remove()
-        reopenStateElem.remove()
-        openStateTitle.remove()
-        resolveStateTitle.remove()
-        progressStateTitle.remove()
-        reopenStateTitle.remove()
-      }
-      else {
-        if (info.data["open"] == null) {
-          openStateElem.remove()
-          openStateTitle.textContent = "Диаграмма, демонстрирующая распределение времени по состоянию \"Open\" - " +
-            "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
-        } else {
-          // @ts-ignore
-          openStateChartOptions.xAxis["categories"] = info.data["categories"]["open"]
-          let count = []
-          for (let i = 0; i < info.data["categories"]["open"].length; i++) {
-            // @ts-ignore
-            count.push(info.data["open"][info.data["categories"]["open"][i]])
-          }
-          openStateChartOptions.series?.push({
-            name: this.projects[0],
-            type: "spline",
-            data: count
-          })
-          this.openStateChart = new Chart(openStateChartOptions)
-        }
-        if (info.data["resolve"] == null) {
-          resolveStateElem.remove()
-          resolveStateTitle.textContent = "Диаграмма, демонстрирующая распределение времени по состоянию \"Resolve\" - " +
-            "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
-        } else {
-          // @ts-ignore
-          resolveStateChartOptions.xAxis["categories"] = info.data["categories"]["resolve"]
-          let countResolve = []
-          for (let i = 0; i < info.data["categories"]["resolve"].length; i++) {
-            // @ts-ignore
-            countResolve.push(info.data["resolve"][info.data["categories"]["resolve"][i]])
-          }
-          resolveStateChartOptions.series?.push({
-            name: this.projects[0],
-            type: "spline",
-            data: countResolve
-          })
-          this.resolveStateChart = new Chart(resolveStateChartOptions)
-        }
-
-        if (info.data["progress"] == null) {
-          progressStateElem.remove()
-          progressStateTitle.textContent = "Диаграмма, демонстрирующая распределение времени по состоянию \"Progress\" - " +
-            "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
-        } else {
-          // @ts-ignore
-          progressStateChartOptions.xAxis["categories"] = info.data["categories"]["progress"]
-          const countProgress = []
-          for (let i = 0; i < info.data["categories"]["progress"].length; i++) {
-            // @ts-ignore
-            countProgress.push(info.data["progress"][info.data["categories"]["progress"][i]])
-          }
-          progressStateChartOptions.series?.push({
-            name: this.projects[0],
-            type: "spline",
-            data: countProgress
-          })
-          this.progressStateChart = new Chart(progressStateChartOptions)
-        }
-
-
-        if (info.data["reopen"] == null) {
-          reopenStateElem.remove()
-          reopenStateTitle.textContent = "Диаграмма, демонстрирующая распределение времени по состоянию \"Reopen\" - " +
-            "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
-        } else {
-          // @ts-ignore
-          reopenStateChartOptions.xAxis["categories"] = info.data["categories"]["reopen"]
-          const countReopen = []
-          for (let i = 0; i < info.data["categories"]["reopen"].length; i++) {
-            // @ts-ignore
-            countReopen.push(info.data["reopen"][info.data["categories"]["reopen"][i]])
-          }
-          reopenStateChartOptions.series?.push({
-            name: this.projects[0],
-            type: "spline",
-            data: countReopen
-          })
-          this.reopenStateChart = new Chart(reopenStateChartOptions)
-        }
-      }
-    })
-
-
-    let activityByTaskElem = document.getElementById('activity-by-task') as HTMLElement;
-    let activityByTaskTitle = document.getElementById('activity-by-task-title') as HTMLElement;
-    this.dbProjectService.getGraph("3", this.projects[0]).subscribe(info => {
-      if (info.data == null) {
-        activityByTaskElem.remove()
-        activityByTaskTitle.remove()
-      }
-      else {
-        if (info.data["close"] == null) {
-          activityByTaskElem.remove()
-          activityByTaskTitle.textContent = "График активности по задачам - " +
-            "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
-        } else {
-          // @ts-ignore
-          activityByTaskChartOptions.xAxis["categories"] = info.data["categories"]["all"]
-          let countOpen: any[] = []
-          for (let i = 0; i < info.data["categories"]["all"].length; i++) {
-            if (info.data["open"][info.data["categories"]["all"][i]] == undefined){
-              if (i == 0){
-                countOpen.push(0)
-              }
-              else{
-                countOpen.push(countOpen[i-1])
-              }
-            }
-            else{
-              countOpen.push(info.data["open"][info.data["categories"]["all"][i]])
-            }
-          }
-          let countClose: any[] = []
-          for (let i = 0; i < info.data["categories"]["all"].length; i++) {
-            if (info.data["close"][info.data["categories"]["all"][i]] == undefined){
-              if (i == 0){
-                countClose.push(0)
-              }
-              else{
-                countClose.push(countClose[i-1])
-              }
-            }
-            else{
-              countClose.push(info.data["close"][info.data["categories"]["all"][i]])
-            }
-          }
-          activityByTaskChartOptions.series?.push({
-            name: this.projects[0] + " open",
-            type: "spline",
-            data: countOpen
-          })
-          activityByTaskChartOptions.series?.push({
-            name: this.projects[0] + " close",
-            type: "spline",
-            data: countClose
-          })
-          this.activityByTaskChart = new Chart(activityByTaskChartOptions)
-        }
-      }
-    })
+    // let openStateElem = document.getElementById('open-state') as HTMLElement;
+    // let resolveStateElem = document.getElementById('resolve-state') as HTMLElement;
+    // let progressStateElem = document.getElementById('progress-state') as HTMLElement;
+    // let reopenStateElem = document.getElementById('reopen-state') as HTMLElement;
+    // let openStateTitle = document.getElementById('open-state-title') as HTMLElement;
+    // let resolveStateTitle = document.getElementById('resolve-state-title') as HTMLElement;
+    // let progressStateTitle = document.getElementById('progress-state-title') as HTMLElement;
+    // let reopenStateTitle = document.getElementById('reopen-state-title') as HTMLElement;
+    //
+    //
+    // this.dbProjectService.getGraph("2", this.projects[0]).subscribe(info => {
+    //   if (info.data == null) {
+    //     openStateElem.remove()
+    //     resolveStateElem.remove()
+    //     progressStateElem.remove()
+    //     reopenStateElem.remove()
+    //     openStateTitle.remove()
+    //     resolveStateTitle.remove()
+    //     progressStateTitle.remove()
+    //     reopenStateTitle.remove()
+    //   }
+    //   else {
+    //     if (info.data["open"] == null) {
+    //       openStateElem.remove()
+    //       openStateTitle.textContent = "Диаграмма, демонстрирующая распределение времени по состоянию \"Open\" - " +
+    //         "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
+    //     } else {
+    //       // @ts-ignore
+    //       openStateChartOptions.xAxis["categories"] = info.data["categories"]["open"]
+    //       let count = []
+    //       for (let i = 0; i < info.data["categories"]["open"].length; i++) {
+    //         // @ts-ignore
+    //         count.push(info.data["open"][info.data["categories"]["open"][i]])
+    //       }
+    //       openStateChartOptions.series?.push({
+    //         name: this.projects[0],
+    //         type: "spline",
+    //         data: count
+    //       })
+    //       this.openStateChart = new Chart(openStateChartOptions)
+    //     }
+    //     if (info.data["resolve"] == null) {
+    //       resolveStateElem.remove()
+    //       resolveStateTitle.textContent = "Диаграмма, демонстрирующая распределение времени по состоянию \"Resolve\" - " +
+    //         "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
+    //     } else {
+    //       // @ts-ignore
+    //       resolveStateChartOptions.xAxis["categories"] = info.data["categories"]["resolve"]
+    //       let countResolve = []
+    //       for (let i = 0; i < info.data["categories"]["resolve"].length; i++) {
+    //         // @ts-ignore
+    //         countResolve.push(info.data["resolve"][info.data["categories"]["resolve"][i]])
+    //       }
+    //       resolveStateChartOptions.series?.push({
+    //         name: this.projects[0],
+    //         type: "spline",
+    //         data: countResolve
+    //       })
+    //       this.resolveStateChart = new Chart(resolveStateChartOptions)
+    //     }
+    //
+    //     if (info.data["progress"] == null) {
+    //       progressStateElem.remove()
+    //       progressStateTitle.textContent = "Диаграмма, демонстрирующая распределение времени по состоянию \"Progress\" - " +
+    //         "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
+    //     } else {
+    //       // @ts-ignore
+    //       progressStateChartOptions.xAxis["categories"] = info.data["categories"]["progress"]
+    //       const countProgress = []
+    //       for (let i = 0; i < info.data["categories"]["progress"].length; i++) {
+    //         // @ts-ignore
+    //         countProgress.push(info.data["progress"][info.data["categories"]["progress"][i]])
+    //       }
+    //       progressStateChartOptions.series?.push({
+    //         name: this.projects[0],
+    //         type: "spline",
+    //         data: countProgress
+    //       })
+    //       this.progressStateChart = new Chart(progressStateChartOptions)
+    //     }
+    //
+    //
+    //     if (info.data["reopen"] == null) {
+    //       reopenStateElem.remove()
+    //       reopenStateTitle.textContent = "Диаграмма, демонстрирующая распределение времени по состоянию \"Reopen\" - " +
+    //         "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
+    //     } else {
+    //       // @ts-ignore
+    //       reopenStateChartOptions.xAxis["categories"] = info.data["categories"]["reopen"]
+    //       const countReopen = []
+    //       for (let i = 0; i < info.data["categories"]["reopen"].length; i++) {
+    //         // @ts-ignore
+    //         countReopen.push(info.data["reopen"][info.data["categories"]["reopen"][i]])
+    //       }
+    //       reopenStateChartOptions.series?.push({
+    //         name: this.projects[0],
+    //         type: "spline",
+    //         data: countReopen
+    //       })
+    //       this.reopenStateChart = new Chart(reopenStateChartOptions)
+    //     }
+    //   }
+    // })
+    //
+    //
+    // let activityByTaskElem = document.getElementById('activity-by-task') as HTMLElement;
+    // let activityByTaskTitle = document.getElementById('activity-by-task-title') as HTMLElement;
+    // this.dbProjectService.getGraph("3", this.projects[0]).subscribe(info => {
+    //   if (info.data == null) {
+    //     activityByTaskElem.remove()
+    //     activityByTaskTitle.remove()
+    //   }
+    //   else {
+    //     if (info.data["close"] == null) {
+    //       activityByTaskElem.remove()
+    //       activityByTaskTitle.textContent = "График активности по задачам - " +
+    //         "аналитическая задача недоступна, проект не располагает данными для ее выполнения"
+    //     } else {
+    //       // @ts-ignore
+    //       activityByTaskChartOptions.xAxis["categories"] = info.data["categories"]["all"]
+    //       let countOpen: any[] = []
+    //       for (let i = 0; i < info.data["categories"]["all"].length; i++) {
+    //         if (info.data["open"][info.data["categories"]["all"][i]] == undefined){
+    //           if (i == 0){
+    //             countOpen.push(0)
+    //           }
+    //           else{
+    //             countOpen.push(countOpen[i-1])
+    //           }
+    //         }
+    //         else{
+    //           countOpen.push(info.data["open"][info.data["categories"]["all"][i]])
+    //         }
+    //       }
+    //       let countClose: any[] = []
+    //       for (let i = 0; i < info.data["categories"]["all"].length; i++) {
+    //         if (info.data["close"][info.data["categories"]["all"][i]] == undefined){
+    //           if (i == 0){
+    //             countClose.push(0)
+    //           }
+    //           else{
+    //             countClose.push(countClose[i-1])
+    //           }
+    //         }
+    //         else{
+    //           countClose.push(info.data["close"][info.data["categories"]["all"][i]])
+    //         }
+    //       }
+    //       activityByTaskChartOptions.series?.push({
+    //         name: this.projects[0] + " open",
+    //         type: "spline",
+    //         data: countOpen
+    //       })
+    //       activityByTaskChartOptions.series?.push({
+    //         name: this.projects[0] + " close",
+    //         type: "spline",
+    //         data: countClose
+    //       })
+    //       this.activityByTaskChart = new Chart(activityByTaskChartOptions)
+    //     }
+    //   }
+    // })
 
 
     let complexityTaskElem = document.getElementById('complexity-task') as HTMLElement;
@@ -287,7 +287,7 @@ export class ProjectStatPageComponent implements OnInit {
             let count = []
             for (let i = 0; i < info.data["categories"].length; i++) {
               // @ts-ignore
-              count.push(info.data["count"][info.data["categories"][i]])
+              count.push(info.data["graphFiveData"].find((item: { priority: any; }) => item.priority == info.data["categories"][i])["count"])
             }
             taskPriorityChartOptions.series?.push({
               name: this.projects[0],
@@ -318,7 +318,7 @@ export class ProjectStatPageComponent implements OnInit {
             let count = []
             for (let i = 0; i < info.data["categories"].length; i++) {
               // @ts-ignore
-              count.push(info.data["count"][info.data["categories"][i]])
+              count.push(info.data["graphSixData"].find((item: { priority: any; }) => item.priority == info.data["categories"][i])["count"])
             }
             closeTaskPriorityChartOptions.series?.push({
               name: this.projects[0],

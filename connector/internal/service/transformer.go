@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/models"
 	"time"
 )
@@ -24,7 +23,6 @@ func (dataTransformer *TransformerService) TransformData(issues []models.Issue) 
 			closedTime = createdTime.Add(time.Hour * 24 * 365 * 10)
 		}
 		timespent := closedTime.Sub(createdTime)
-		fmt.Print(timespent.Seconds())
 		transformedIssues = append(transformedIssues, models.TransformedIssue{
 			Project:     issue.Fields.Project.Name,
 			Author:      issue.Fields.Creator.Name,

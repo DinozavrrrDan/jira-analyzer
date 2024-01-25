@@ -1,4 +1,4 @@
-package http
+package handler
 
 import (
 	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/config"

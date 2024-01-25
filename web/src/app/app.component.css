@@ -52,7 +52,7 @@ nav ul {
   align-content: center;
   font-size: 16px;
   font-weight: bold;
-  color: #404040;
+  color: #000000;
   padding: 15px 30px;
 }
 .topmenu_main li a:hover {color: #eeeaea;}
@@ -102,5 +102,5 @@ nav ul {
 .rectangle {
   width: 100%;
   margin:auto;
-  background: #a6deb0;
+  background: #9454ec;
 }
