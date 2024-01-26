@@ -4,8 +4,8 @@ import (
 	"github.com/DinozvrrDan/jira-analyzer/backend/resource/config"
 	"github.com/DinozvrrDan/jira-analyzer/backend/resource/internal/handler/http/v1"
 	"github.com/DinozvrrDan/jira-analyzer/backend/resource/internal/repository"
-	"github.com/DinozvrrDan/jira-analyzer/backend/resource/pkg/logger"
 	"github.com/gorilla/mux"
+	"github.com/magellon17/logger"
 )
 
 type Handler struct {

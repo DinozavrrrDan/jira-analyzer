@@ -3,8 +3,8 @@ package v1
 import (
 	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/config"
 	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/internal/repository"
-	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/pkg/logger"
 	"github.com/gorilla/mux"
+	"github.com/magellon17/logger"
 )
 
 type Handler struct {

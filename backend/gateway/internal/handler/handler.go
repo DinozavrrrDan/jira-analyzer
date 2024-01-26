@@ -3,7 +3,7 @@ package handler
 import (
 	"github.com/DinozvrrDan/jira-analyzer/backend/gateway/config"
 	v1 "github.com/DinozvrrDan/jira-analyzer/backend/gateway/internal/handler/http/v1"
-	"github.com/DinozvrrDan/jira-analyzer/backend/gateway/pkg/logger"
+	"github.com/magellon17/logger"
 	"net/http"
 )
 

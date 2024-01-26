@@ -6,8 +6,8 @@ import (
 	"github.com/DinozvrrDan/jira-analyzer/backend/resource/config"
 	resourceHandler "github.com/DinozvrrDan/jira-analyzer/backend/resource/internal/handler"
 	"github.com/DinozvrrDan/jira-analyzer/backend/resource/internal/repository"
-	"github.com/DinozvrrDan/jira-analyzer/backend/resource/pkg/logger"
 	"github.com/gorilla/mux"
+	"github.com/magellon17/logger"
 	"net/http"
 )
 

@@ -39,22 +39,46 @@ func (connectorRepository *ConnectorRepository) PushIssues(issues []models.Trans
 			return fmt.Errorf("error while getting assigneeId: %w", err)
 		}
 
-		err = connectorRepository.insertIssue(
-			projectId,
-			authorId,
-			assigneeId,
-			issue.Key,
-			issue.Summary,
-			issue.Description,
-			issue.Type,
-			issue.Priority,
-			issue.Status,
-			issue.CreatedTime,
-			issue.ClosedTime,
-			issue.UpdatedTime,
-			issue.TimeSpent)
+		exists, err := connectorRepository.checkIssueExists(issue.Key)
 		if err != nil {
-			return fmt.Errorf("error while inserting issue: %w", err)
+			return fmt.Errorf("error while checking issue exists: %w", err)
+		}
+		if exists {
+			err := connectorRepository.updateIssue(
+				projectId,
+				authorId,
+				assigneeId,
+				issue.Key,
+				issue.Summary,
+				issue.Description,
+				issue.Type,
+				issue.Priority,
+				issue.Status,
+				issue.CreatedTime,
+				issue.ClosedTime,
+				issue.UpdatedTime,
+				issue.TimeSpent)
+			if err != nil {
+				return fmt.Errorf("error while updating issue: %w", err)
+			}
+		} else {
+			err := connectorRepository.insertIssue(
+				projectId,
+				authorId,
+				assigneeId,
+				issue.Key,
+				issue.Summary,
+				issue.Description,
+				issue.Type,
+				issue.Priority,
+				issue.Status,
+				issue.CreatedTime,
+				issue.ClosedTime,
+				issue.UpdatedTime,
+				issue.TimeSpent)
+			if err != nil {
+				return fmt.Errorf("error while inserting issue: %w", err)
+			}
 		}
 	}
 	return nil
@@ -136,7 +160,7 @@ func (connectorRepository *ConnectorRepository) getProjectId(projectTitle string
 	}
 
 	if projectId == 0 {
-		err := connectorRepository.db.QueryRow("INSERT INTO project (title) VALUES($1)", projectTitle).Scan(&projectId)
+		err := connectorRepository.db.QueryRow("INSERT INTO project (title) VALUES($1)", projectTitle).Scan(projectId)
 		if !errors.Is(err, sql.ErrNoRows) {
 			return projectId, fmt.Errorf("getProjectId error: %w", err)
 		}

@@ -7,9 +7,9 @@ import (
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/handler"
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/repository"
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/service"
-	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	"github.com/magellon17/logger"
 	"net/http"
 )
 
@@ -45,6 +45,7 @@ func NewApp(cfg *config.Config, log *logger.Logger) (*App, error) {
 	handlers := handler.NewHandler(services, repositories, log, cfg)
 
 	router := mux.NewRouter()
+
 	handlers.GetRouter(router)
 
 	server := &http.Server{

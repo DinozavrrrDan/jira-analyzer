@@ -4,11 +4,11 @@ import (
 	"flag"
 	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/config"
 	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/internal/app"
-	"github.com/DinozvrrDan/jira-analyzer/backend/analytics/pkg/logger"
+	"github.com/magellon17/logger"
 )
 
 func main() {
-	configPath := flag.String("configPath", "config/config-backend.yaml", "Path to the config file")
+	configPath := flag.String("configPath", "config/config-analytics.yaml", "Path to the config file")
 	flag.Parse()
 
 	log := logger.CreateNewLogger()

@@ -6,8 +6,8 @@ import (
 	"github.com/DinozvrrDan/jira-analyzer/backend/resource/config"
 	"github.com/DinozvrrDan/jira-analyzer/backend/resource/internal/models"
 	repository2 "github.com/DinozvrrDan/jira-analyzer/backend/resource/internal/repository"
-	"github.com/DinozvrrDan/jira-analyzer/backend/resource/pkg/logger"
 	"github.com/gorilla/mux"
+	"github.com/magellon17/logger"
 	"io"
 	"net/http"
 	"strconv"
@@ -62,22 +62,14 @@ func (handler *ResourceHandler) getIssue(writer http.ResponseWriter, request *ht
 		return
 	}
 
-	//Тут заглушка
-	project, err := handler.resourceRep.GetProjectInfo("")
-
-	if err != nil {
-		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
-		return
-	}
-
 	var issueResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
-			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", id)},
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", id)},
 		},
-		Info:    project,
+		Info:    issue,
 		Message: "",
 		Name:    "",
 		Status:  true,
@@ -90,8 +82,6 @@ func (handler *ResourceHandler) getIssue(writer http.ResponseWriter, request *ht
 		return
 	}
 
-	writer.WriteHeader(http.StatusOK)
-
 	_, err = writer.Write(response)
 
 	if err != nil {
@@ -99,7 +89,6 @@ func (handler *ResourceHandler) getIssue(writer http.ResponseWriter, request *ht
 		return
 	}
 
-	writer.WriteHeader(http.StatusOK)
 }
 
 func (handler *ResourceHandler) getProject(writer http.ResponseWriter, request *http.Request) {
@@ -118,9 +107,10 @@ func (handler *ResourceHandler) getProject(writer http.ResponseWriter, request *
 
 	var projectResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: fmt.Sprintf("/api/v1/resource/project?project=%s", projectName[0])},
 		},
 		Info:    project,
 		Message: "",
@@ -144,7 +134,6 @@ func (handler *ResourceHandler) getProject(writer http.ResponseWriter, request *
 }
 
 func (handler *ResourceHandler) getProjects(writer http.ResponseWriter, request *http.Request) {
-	fmt.Println("GET PROJECTS")
 	projects, err := handler.resourceRep.GetProjects()
 
 	if err != nil {
@@ -154,9 +143,10 @@ func (handler *ResourceHandler) getProjects(writer http.ResponseWriter, request 
 
 	var projectResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: "/api/v1/resource/projects"},
 		},
 		Info:    projects,
 		Message: "",
@@ -195,20 +185,18 @@ func (handler *ResourceHandler) postIssue(writer http.ResponseWriter, request *h
 		return
 	}
 
-	id, err := handler.resourceRep.InsertIssue(issueInfo)
+	_, err = handler.resourceRep.InsertIssue(issueInfo)
 	if err != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
-	} else {
-		writer.WriteHeader(http.StatusOK)
 	}
 
 	var issuesResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
-			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", id)},
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: "/api/v1/resource/issues/"},
 		},
 		Message: "",
 		Name:    "",
@@ -251,16 +239,14 @@ func (handler *ResourceHandler) postProject(writer http.ResponseWriter, request 
 	if err != nil {
 		errorWriter(writer, handler.log, err.Error(), http.StatusBadRequest)
 		return
-	} else {
-		writer.WriteHeader(http.StatusOK)
 	}
 
 	var projectResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
-			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", id)},
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: fmt.Sprintf("/api/v1/resource/project?project=%d", id)},
 		},
 		Message: "",
 		Name:    "",
@@ -298,10 +284,10 @@ func (handler *ResourceHandler) deleteProject(writer http.ResponseWriter, reques
 
 	var projectResponse = models.ResponseStruct{
 		Links: models.ListOfReferences{
-			Issues:    models.Link{Href: "/api/v1/issues"},
-			Projects:  models.Link{Href: "/api/v1/projects"},
-			Histories: models.Link{Href: "/api/v1/histories"},
-			Self:      models.Link{Href: fmt.Sprintf("/api/v1/issues/%d", 0)},
+			Issues:   models.Link{Href: "/api/v1/resource/issues"},
+			Projects: models.Link{Href: "/api/v1/resource/project"},
+			Graphs:   models.Link{Href: "/api/v1/graph"},
+			Self:     models.Link{Href: fmt.Sprintf("/api/v1/resource/project?project=%s", projectName[0])},
 		},
 		Message: "",
 		Name:    "",

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/DinozvrrDan/jira-analyzer/backend/gateway/config"
-	"github.com/DinozvrrDan/jira-analyzer/backend/gateway/pkg/logger"
+	"github.com/magellon17/logger"
 	"net/http"
 	"net/http/httputil"
 	"net/url"

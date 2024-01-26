@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"github.com/DinozvrrDan/jira-analyzer/backend/resource/pkg/logger"
+	"github.com/magellon17/logger"
 	"net/http"
 )
 

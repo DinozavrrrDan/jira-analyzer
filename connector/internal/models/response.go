@@ -10,10 +10,10 @@ type ResponseStruct struct {
 }
 
 type ListOfReferences struct {
-	Issues    Link `json:"issues"`
-	Projects  Link `json:"projects"`
-	Histories Link `json:"histories"`
-	Self      Link `json:"self"`
+	Issues   Link `json:"issues"`
+	Projects Link `json:"projects"`
+	Graphs   Link `json:"graphs"`
+	Self     Link `json:"self"`
 }
 
 type Link struct {

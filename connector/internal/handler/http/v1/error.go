@@ -2,7 +2,7 @@ package v1
 
 import (
 	"fmt"
-	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
+	"github.com/magellon17/logger"
 	"net/http"
 )
 

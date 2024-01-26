@@ -4,8 +4,8 @@ import (
 	"github.com/DinozvrrDan/jira-analyzer/connector/config"
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/repository"
 	"github.com/DinozvrrDan/jira-analyzer/connector/internal/service"
-	"github.com/DinozvrrDan/jira-analyzer/connector/pkg/logger"
 	"github.com/gorilla/mux"
+	"github.com/magellon17/logger"
 )
 
 type Handler struct {
